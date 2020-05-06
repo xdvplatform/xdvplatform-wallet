@@ -1,0 +1,92 @@
+
+wf.createWFPayload(
+    wf.getSteps(), [
+    [wf.getActor('DR'), 
+    wf.getState('NONE'), 
+    wf.getState('PRESCRIPTION_SENT')],
+    [
+      wf.getActor('PATIENT'),
+      wf.getState('PRESCRIPTION_SENT'),
+      wf.getState('RX_REQUEST'),
+    ],
+    [
+      wf.getActor('RX'),
+      wf.getState('RX_REQUEST'),
+      wf.getState('RX_ACCEPT'),
+    ],
+    [
+      wf.getActor('RX'),
+      wf.getState('RX_REQUEST'),
+      wf.getState('RX_REJECT'),
+    ],
+    [
+      wf.getActor('PATIENT'),
+      wf.getState('RX_ACCEPT'),
+      wf.getState('PATIENT_PAYMENT_SENT'),
+    ],
+    [
+      wf.getActor('RX'),
+      wf.getState('PATIENT_PAYMENT_SENT'),
+      wf.getState('PAYMENT_RCV'),
+    ],
+    [
+      wf.getActor('PATIENT'),
+      wf.getState('PAYMENT_RCV'),
+      wf.getState('COMPLETED'),
+    ],
+  ])
+)
+
+  // 4) Create states
+  wf.createStates([
+    'NONE',
+    'CREATED',
+    'ACCEPTED',
+    'CERTIFIED',
+    'COMPLETED',
+    'MULTI_SIGNERS',
+  ]);
+
+  // 5) Actors
+  wf.createActors(['USER', 'NOTARY']);
+
+  // 6) Steps
+  wf.createStep({
+    currentActor: wf.getActor('USER'),
+    current: wf.getState('NONE'), // none
+    next: wf.getState('CREATED'), // created
+    mappingType: 0, // init
+  });
+  wf.createStep({
+    currentActor: wf.getActor('NOTARY'),
+    current: wf.getState('CREATED'), // created
+    next: wf.getState('ACCEPTED'), // accepted
+    mappingType: 2, // status
+    stepValidations: [wf.getState('CREATED')],
+  });
+  wf.createStep({
+    currentActor: wf.getActor('NOTARY'),
+    current: wf.getState('ACCEPTED'), // accepted
+    next: wf.getState('MULTI_SIGNERS'), // certified
+    mappingType: 2, // updated_diff
+    forkId: wf.getState('CERTIFIED'),
+    stepValidations: [wf.getState('ACCEPTED')],
+    recipientValidations: ['0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F'],
+  });
+  wf.createStep({
+    currentActor: wf.getActor('NOTARY'),
+    current: wf.getState('MULTI_SIGNERS'), // accepted
+    next: wf.getState('CERTIFIED'), // certified
+    mappingType: 2, // updated_diff
+    forkId: wf.getState('MULTI_SIGNERS'),
+    stepValidations: [wf.getState('ACCEPTED'), wf.getState('MULTI_SIGNERS')],
+    recipientValidations: ['0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F','0xeeC58E89996496640c8b5898A7e0218E9b6E90cB'],
+  });
+  wf.createStep({
+    currentActor: wf.getActor('USER'),
+    current: wf.getState('CERTIFIED'), //       forkId: 0,
+    next: wf.getState('COMPLETED'), // completed
+    mappingType: 2, // status
+    stepValidations: [wf.getState('CERTIFIED')],
+    senderValidations: ['0xeeC58E89996496640c8b5898A7e0218E9b6E90cB'],
+  });
