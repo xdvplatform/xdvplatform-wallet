@@ -90,3 +90,88 @@ wf.createWFPayload(
     stepValidations: [wf.getState('CERTIFIED')],
     senderValidations: ['0xeeC58E89996496640c8b5898A7e0218E9b6E90cB'],
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{"actors":["DR","RX","PATIENT"],
+  
+  "states":[
+    "NONE",
+    "PRESCRIPTION_SENT",
+    "RX_REQUEST",
+    "RX_ACCEPT",
+    "RX_REJECT",
+    "PATIENT_PAYMENT_SENT",
+    "PAYMENT_RCV",
+    "COMPLETED"
+  ],
+  "steps": 
+[{
+  "currentActor": "DR",
+  "current":"NONE",
+  "next":"PRESCRIPTION_SENT",
+  "description":"-- envia receta -->",
+  "mappingType": 0
+},
+{
+  "currentActor": "PATIENT",
+  "current":"PRESCRIPTION_SENT",
+  "next":"RX_REQUEST",
+  "mappingType": 2,
+    "description":"-- solicita medicamentos -->",
+  "stepValidations": ["PRESCRIPTION_SENT"]
+},
+{
+  "currentActor": "RX",
+  "current":"RX_REQUEST",
+  "next":"RX_ACCEPT",
+  "mappingType": 2,
+  "forkId":"RX_REJECT",
+  "stepValidations": ["RX_REQUEST"]
+},
+{
+  "currentActor": "RX",
+  "current":"RX_REJECT",
+  "next":"COMPLETED",
+    "description":"-- rechazada -->",
+  "mappingType": 2,
+  "stepValidations": ["RX_REQUEST"]
+},
+{
+  "currentActor": "PATIENT",
+  "current":"RX_ACCEPT",
+  "next":"PATIENT_PAYMENT_SENT",
+    "description":"-- aceptada, esperando pago -->",
+  "mappingType": 2,
+  "stepValidations": ["RX_ACCEPT"]
+},
+{
+  "currentActor": "RX",
+  "current":"PATIENT_PAYMENT_SENT",
+  "next":"PAYMENT_RCV",
+    "description":"-- pago recibido -->",
+  "mappingType": 2,
+  "stepValidations": ["PATIENT_PAYMENT_SENT"]
+},
+{
+  "currentActor": "PATIENT",
+  "current":"PAYMENT_RCV",
+    "description":"-- medicamentos recibido -->",
+  "next":"COMPLETED",
+  "mappingType": 2,
+  "stepValidations": ["PAYMENT_RCV"]
+}]
+}

@@ -49,7 +49,7 @@ export class WStep {
 
   public recipientValidations?: string[];
   public senderValidations?: string[];
-  public stepValidations?: string[];
+  public stepValidations?: number[];
 }
 export class WTemplate{
   @ArrayMinSize(2)
