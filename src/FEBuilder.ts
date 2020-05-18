@@ -1,19 +1,24 @@
 import { DGen, DVerForm, DId } from './models';
-import { IsPositive, Min, IsEthereumAddress, MinLength, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, Matches } from 'class-validator';
+import { IsPositive, Min, IsEthereumAddress, MinLength, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, Matches, ValidateNested, IsNumber } from 'class-validator';
 import { create } from 'xmlbuilder2';
 
 export class TypedRFE {
-  @MaxLength(4)
+  @IsNumber()
   public dVerForm: number;
 
-  @Matches('[F][E](([A|V|T|E|P|N|I]|[-]|[a-zA-Z0-9]){64})?') 
-  @MinLength(64)   
+  @Matches(/[F][E](([A|V|T|E|P|N|I]|[-]|[a-zA-Z0-9]){64})?/)
+  @MinLength(64)
   public dId: string;
+
+  @IsDefined()
+  @ValidateNested()
+  public gDGen: DGen;
 }
 
 
 export class FEBuilder {
   @IsDefined()
+  @ValidateNested()
   private _rFE: TypedRFE;
   // private items: Item[];
   // private total: Tot;
@@ -33,7 +38,7 @@ export class FEBuilder {
    * @param entry 
    */
   public rFE(entry: TypedRFE) {
-    this._rFE = entry;
+    this._rFE = Object.assign(new TypedRFE(), entry)
     return this;
   }
 

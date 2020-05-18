@@ -100,6 +100,13 @@ export enum TipoSucursalEnum {
     AlPorMayor = 2,
 }
 
+
+export enum TipoAmbienteEnum {
+    Produccion = 1,
+    Pruebas = 2,
+}
+
+
 export enum TipoReceptorEnum {
     Contribuyente = '01',
     ConsumidorFinal = '02',
@@ -201,9 +208,9 @@ export class Receptor {
 }
 
 export class DGen {
-    @IsInt()
-    @IsIn([1, 2])
-    public iAmb: number;
+    
+    @IsEnum(TipoAmbienteEnum)
+    public iAmb: TipoAmbienteEnum;
 
     @IsEnum(TipoEmisionEnum)
     public iTpEmis: TipoEmisionEnum;

@@ -1,9 +1,6 @@
-import { WorkflowBuilder, RlpDocumentPayload, WTemplate, OperationType, FileContentType } from './WorkflowBuilder';
 import { expect } from 'chai';
-import { FEBuilder } from './FEBuilder';
-import { DId, DVerForm } from './models';
-
-
+import { FEBuilder, TypedRFE } from './FEBuilder';
+import { DId, DVerForm, DGen, TipoAmbienteEnum, TipoEmisionEnum, DocumentTypeEnum } from './models';
 const testMatch =
 `<rFE xmlns="http://dgi-fep.mef.gob.pa"><dVerForm>1.00</dVerForm><dId>FE01200000000000029-29-29-5676322018101525982740639300126729580548</dId></rFE>`
 
@@ -17,9 +14,14 @@ describe("FEBuilder", function () {
 
     const rfe = FEBuilder
     .create()
-    .rFE({
+    .rFE( {
       dId: 'FE01200000000000029-29-29-5676322018101525982740639300126729580548',
-      dVerForm: 1.00
+      dVerForm: 1.00,
+      gDGen: {
+        iAmb: TipoAmbienteEnum.Pruebas,
+        iTpEmis: TipoEmisionEnum.UsoPrevioOpsNormal,
+        iDoc: DocumentTypeEnum.FacturaOpsInterna,
+      }
     })
 
     const res = await rfe.toXml();
