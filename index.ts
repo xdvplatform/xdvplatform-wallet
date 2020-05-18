@@ -1,2 +1,2 @@
 
-export * from './src/WorkflowBuilder';
+export * from './src/FEBuilder';
