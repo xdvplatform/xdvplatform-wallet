@@ -3,6 +3,7 @@ import { TipoReceptor, RucRecType } from './DGen';
 import { IdExtType } from "./IdExtType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import { RucType } from './RucType';
 export class Receptor {
     /**
      *             ID: B401 - Identifica el tipo de receptor de la FE
@@ -58,38 +59,37 @@ export class Receptor {
     public cPaisRecDesc?: string;
 
 
-    public toXmlObject?(parent: XMLBuilder) {
+    public static toXmlObject(instance: Receptor, parent: XMLBuilder) {
 
         let node = parent.ele('gDatRec');
-        node = this.gRucRec.toXmlObject('gRucRec', node).up();
-        node = this.gUbiRec.toXmlObject('gUbiRec', node).up();
-        node = node.ele('iTipoRec').txt(this.iTipoRec).up();
-        node = node.ele('cPaisRec').txt(this.cPaisRec).up();
+        node = RucType.toXmlObject(instance.gRucRec, 'gRucRec', parent).up();
+        node = CodigoUbicacionType.toXmlObject(instance.gUbiRec, 'gUbiRec', parent).up();
+        node = node.ele('iTipoRec').txt(instance.iTipoRec).up();
+        node = node.ele('cPaisRec').txt(instance.cPaisRec).up();
 
 
-        if (this.gIdExtType) {
-            node = node.ele('gIdExtType').txt(this.gIdExtType.).up();
-
-        }
-        if (this.cPaisRecDesc) {
-            node = node.ele('cPaisRecDesc').txt(this.cPaisRecDesc).up();
-
-        }
-        if (this.dNombRec) {
-            node = node.ele('dNombRec').txt(this.dNombRec).up();
+        // if (instance.gIdExtType) {
+        //     node = node.ele('gIdExtType').txt(instance.gIdExtType.toXmlObject(node)).up();
+        // }
+        if (instance.cPaisRecDesc) {
+            node = node.ele('cPaisRecDesc').txt(instance.cPaisRecDesc).up();
 
         }
-        if (this.dDirecRec) {
-            node = node.ele('dDirecRec').txt(this.dDirecRec).up();
+        if (instance.dNombRec) {
+            node = node.ele('dNombRec').txt(instance.dNombRec).up();
 
         }
-        if (this.dTfnRec) {
-            this.dTfnRec.forEach(i => {
+        if (instance.dDirecRec) {
+            node = node.ele('dDirecRec').txt(instance.dDirecRec).up();
+
+        }
+        if (instance.dTfnRec) {
+            instance.dTfnRec.forEach(i => {
                 node = node.ele('dTfnRec').txt(i).up();
             });
         }
-        if (this.dCorElecRec) {
-            this.dCorElecRec.forEach(i => {
+        if (instance.dCorElecRec) {
+            instance.dCorElecRec.forEach(i => {
                 node = node.ele('dCorElecRec').txt(i).up();
             });
         }

@@ -25,24 +25,24 @@ export class Emisor {
     public dCorElecEmi?: string[];
 
 
-    public toXmlObject?(parent: XMLBuilder) {
+    public static toXmlObject?(instance: Emisor, parent: XMLBuilder) {
 
         let node = parent.ele('gEmis');
-        node = this.gRucEmi.toXmlObject('gRucEmi', parent).up();
-        node = this.gUbiEm.toXmlObject('gUbiEm', parent).up();
-        node.ele('dNombEm').txt(this.dNombEm).up()
-            .ele('dCoordEm').txt(this.dCoordEm).up()
-            .ele('dDirecEm').txt(this.dDirecEm).up()
-            .ele('gUbiEm').ele(this.gUbiEm).up();
+        node = RucType.toXmlObject(instance.gRucEmi, 'gRucEmi', parent).up();
+        node = CodigoUbicacionType.toXmlObject(instance.gUbiEm, 'gUbiEm', parent).up();
+        node.ele('dNombEm').txt(instance.dNombEm).up()
+            .ele('dCoordEm').txt(instance.dCoordEm).up()
+            .ele('dDirecEm').txt(instance.dDirecEm).up()
+            .ele('gUbiEm').ele(instance.gUbiEm).up();
 
 
-        if (this.dTfnEm) {
-            this.dTfnEm.forEach(i => {
+        if (instance.dTfnEm) {
+            instance.dTfnEm.forEach(i => {
                 node = node.ele('dTfnEm').txt(i).up();
             });
         }
-        if (this.dCorElecEmi) {
-            this.dCorElecEmi.forEach(i => {
+        if (instance.dCorElecEmi) {
+            instance.dCorElecEmi.forEach(i => {
                 node = node.ele('dCorElecEmi').txt(i).up();
             });
         }

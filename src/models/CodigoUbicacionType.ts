@@ -11,20 +11,20 @@ export class CodigoUbicacionType {
     @MaxLength(50)
     public dProv?: string;
 
-    public toXmlObject?(name: string,  parent: XMLBuilder) {
+    public static toXmlObject(instance: CodigoUbicacionType, name: string,  parent: XMLBuilder) {
 
         const entry = Object.entries(Ubicaciones).find(([k, v]) => {
-            return k === this.dCodUbi;
+            return v === instance.dCodUbi;
         });
 
         if (!entry) {
-            throw new Error(`Invalid dCodUbi ${name}.${this.dCodUbi}`)
+            throw new Error(`Invalid dCodUbi ${name}.${instance.dCodUbi}`)
         }
 
         const [provincia, distrito, corregimiento] = entry[1].split('-');
 
         let node = parent.ele(name)
-        .ele('dCodUbi').txt(entry[0])
+        .ele('dCodUbi').txt(entry[1])
         .ele('dProv').txt(provincia).up()
         .ele('dDistr').txt(distrito).up()
         .ele('dCorreg').txt(corregimiento).up();

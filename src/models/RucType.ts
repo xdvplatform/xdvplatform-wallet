@@ -9,12 +9,12 @@ export class RucType {
     @Matches('[0-9]{2}')
     public dDV: string;
 
-    public toXmlObject?(name: string,  parent: XMLBuilder) {
+    public static toXmlObject(instance: RucType, name: string,  parent: XMLBuilder) {
 
         let node = parent.ele(name)
-        .ele('dDV').txt(this.dDV).up()
-        .ele('dRuc').txt(this.dRuc).up()
-        .ele('dTipoRuc').txt(this.dTipoRuc.toFixed()).up();
+        .ele('dDV').txt(instance.dDV).up()
+        .ele('dRuc').txt(instance.dRuc).up()
+        .ele('dTipoRuc').txt(instance.dTipoRuc.toFixed()).up();
         return node;
     }
 }

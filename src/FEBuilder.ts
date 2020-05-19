@@ -16,6 +16,10 @@ export class TypedRFE {
 }
 
 export const Plantillas = {
+  PruebasFechas: (dt) => ({
+    dFechaEm: dt,
+    dFechaSalida: dt,
+  }),
   Pruebas: {
     iAmb: TipoAmbiente.Pruebas
   },
@@ -24,8 +28,6 @@ export const Plantillas = {
     iEntCafe: EntregaCafe.EnviadoReceptorElectronicamente,
     iProGen: TipoGeneracion.SistemaFacturacionContribuyente,
     iDest: Destino.Panama,
-    dFechaEm: new Date(),
-    dFechaSalida: new Date(),
     iTpEmis: TipoEmision.UsoPrevioOpsNormal,
     iDoc: TipoDocumento.FacturaOpsInterna,
     dEnvFe: EnvioContenedorFE.Normal,
@@ -37,11 +39,7 @@ export class FEBuilder {
   @IsDefined()
   @ValidateNested()
   private _rFE: TypedRFE;
-  // private items: Item[];
-  // private total: Tot;
-  // private pedComGl?: PedComGl;
-  // private infoLog?: InfoLog;
-  // private lcEntr?: LcEntr;
+
 
   constructor() {
   }
@@ -55,7 +53,9 @@ export class FEBuilder {
    * @param entry 
    */
   public rFE(entry: TypedRFE, ...sources: any[]) {
-    this._rFE = Object.assign(new TypedRFE(), entry, ...sources)
+    this._rFE = Object.assign(new TypedRFE(), {
+      ...entry,
+    }, ...sources)
     return this;
   }
 
@@ -75,7 +75,8 @@ export class FEBuilder {
       .ele('dVerForm').txt(this._rFE.dVerForm.toFixed(2)).up()
       .ele('dId').txt(this._rFE.dId).up();
 
-     let parent = this._rFE.gDGen.toXmlObject(doc).up()
+    console.log(this._rFE.gDGen)
+    let parent = DGen.toXmlObject(this._rFE.gDGen, doc).up()
       .doc();
 
     const xmlString = parent.end({ headless: true, prettyPrint: false });

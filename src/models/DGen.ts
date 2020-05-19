@@ -265,51 +265,53 @@ export class DGen {
     @ArrayMaxSize(10)
     public gAutXML?: AutorizadoDescargar[];
 
-    public toXmlObject?(parent: XMLBuilder) {
+    public static toXmlObject(instance: DGen, parent: XMLBuilder) {
 
         let node = parent.ele('gDGen')
-            .ele('iAmb').txt(this.iAmb.toFixed()).up()
-            .ele('iTpEmis').txt(this.iTpEmis).up();
+            .ele('iAmb').txt(instance.iAmb.toFixed()).up()
+            .ele('iTpEmis').txt(instance.iTpEmis).up();
 
 
-        if (this.dIntEmFe) {
-            node = node.ele('dIntEmFe').txt(this.dIntEmFe).up();
+        if (instance.dIntEmFe) {
+            node = node.ele('dIntEmFe').txt(instance.dIntEmFe).up();
         }
 
 
-        if (this.dFechaCont) {
-            node = node.ele('dFechaCont').txt(this.dFechaCont.toUTCString()).up();
+        if (instance.dFechaCont) {
+            node = node.ele('dFechaCont').txt(instance.dFechaCont.toISOString()).up();
         }
 
-        if (this.dFechaSalida) {
-            node = node.ele('dFechaSalida').txt(this.dFechaSalida.toUTCString()).up();
+        if (instance.dFechaSalida) {
+            node = node.ele('dFechaSalida').txt(instance.dFechaSalida.toISOString()).up();
         }
 
-        if (this.iTipoTranVenta) {
-            node = node.ele('iTipoTranVenta').txt(this.iTipoTranVenta.toFixed()).up();
+        if (instance.iTipoTranVenta) {
+            node = node.ele('iTipoTranVenta').txt(instance.iTipoTranVenta.toFixed()).up();
         }
 
-        if (this.dMotCont) {
-            node = node.ele('dMotCont').txt(this.dMotCont).up();
+        if (instance.dMotCont) {
+            node = node.ele('dMotCont').txt(instance.dMotCont).up();
         }
-        node = node.ele('iDoc').txt(this.iDoc).up()
-            .ele('dNroDF').txt(this.dNroDF).up()
-            .ele('dPtoFacDF').txt(this.dPtoFacDF).up()
-            .ele('dFechaEm').txt(this.dFechaEm.toUTCString()).up()
-            .ele('iNatOp').txt(this.iNatOp).up()
-            .ele('iTipoOp').txt(this.iTipoOp.toFixed()).up()
-            .ele('iDest').txt(this.iDest.toFixed()).up()
-            .ele('iFormCAFE').txt(this.iFormCafe.toFixed()).up()
-            .ele('iEntCafe').txt(this.iEntCafe.toFixed()).up()
-            .ele('dEnvFe').txt(this.dEnvFe.toFixed()).up()
-            .ele('iProGen').txt(this.iProGen.toFixed()).up();
+        node = node.ele('iDoc').txt(instance.iDoc).up()
+            .ele('dNroDF').txt(instance.dNroDF).up()
+            .ele('dPtoFacDF').txt(instance.dPtoFacDF).up()
+            .ele('dFechaEm').txt(instance.dFechaEm.toISOString()).up()
+            .ele('iNatOp').txt(instance.iNatOp).up()
+            .ele('iTipoOp').txt(instance.iTipoOp.toFixed()).up()
+            .ele('iDest').txt(instance.iDest.toFixed()).up()
+            .ele('iFormCAFE').txt(instance.iFormCafe.toFixed()).up()
+            .ele('iEntCafe').txt(instance.iEntCafe.toFixed()).up()
+            .ele('dEnvFe').txt(instance.dEnvFe.toFixed()).up()
+            .ele('iProGen').txt(instance.iProGen.toFixed()).up();
 
-        node = this.gEmis.toXmlObject(node).up();
-        node = this.gDatRec.toXmlObject(node).up();
+        node = Emisor.toXmlObject(instance.gEmis, node).up();
+        node = Receptor.toXmlObject(instance.gDatRec, node).up();
 
-        if (this.gAutXML) {
-            this.gAutXML.forEach(i => {
-                node = node.ele(i.gRucAutXML.toXmlObject('gRucAutXML', node)).up();
+        if (instance.gAutXML) {
+            node = node.ele('gAutXML');
+
+            instance.gAutXML.map(i => {
+               return RucType.toXmlObject(i.gRucAutXML, 'gRucAutXML', node);
             });
         }
         return node;
