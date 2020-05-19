@@ -1,4 +1,4 @@
-import { DGen, DVerForm, DId } from './models';
+import { DGen, DVerForm, DId, TipoAmbiente, FormularioCafe, EntregaCafe, TipoGeneracion, Destino, TipoEmision, TipoDocumento, EnvioContenedorFE } from './models';
 import { IsPositive, Min, IsEthereumAddress, MinLength, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, Matches, ValidateNested, IsNumber } from 'class-validator';
 import { create } from 'xmlbuilder2';
 
@@ -15,6 +15,23 @@ export class TypedRFE {
   public gDGen: DGen;
 }
 
+export const Plantillas = {
+  Pruebas: {
+    iAmb: TipoAmbiente.Pruebas
+  },
+  TodoElectronicoLocal: {
+    iFormCafe: FormularioCafe.SinGeneracionCAFE,
+    iEntCafe: EntregaCafe.EnviadoReceptorElectronicamente,
+    iProGen: TipoGeneracion.SistemaFacturacionContribuyente,
+    iDest: Destino.Panama,
+    dFechaEm: new Date(),
+    dFechaSalida: new Date(),
+    iTpEmis: TipoEmision.UsoPrevioOpsNormal,
+    iDoc: TipoDocumento.FacturaOpsInterna,
+    dEnvFe: EnvioContenedorFE.Normal,
+
+  }
+};
 
 export class FEBuilder {
   @IsDefined()
@@ -37,8 +54,8 @@ export class FEBuilder {
    * Sets the DId type
    * @param entry 
    */
-  public rFE(entry: TypedRFE) {
-    this._rFE = Object.assign(new TypedRFE(), entry)
+  public rFE(entry: TypedRFE, ...sources: any[]) {
+    this._rFE = Object.assign(new TypedRFE(), entry, ...sources)
     return this;
   }
 
@@ -61,7 +78,7 @@ export class FEBuilder {
      let parent = this._rFE.gDGen.toXmlObject(doc).up()
       .doc();
 
-    const xmlString = doc.end({ headless: true, prettyPrint: false });
+    const xmlString = parent.end({ headless: true, prettyPrint: false });
     console.log(xmlString);
     return xmlString;
   }

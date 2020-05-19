@@ -1,24 +1,17 @@
 import {
     IsPositive, Min, IsEthereumAddress, MinLength,
     MaxLength, validateOrReject, arrayMinSize,
-    ArrayMinSize, ArrayMaxSize, Matches, IsInt, IsIn, IsEnum, IsDate, IsString
+    ArrayMinSize, ArrayMaxSize, Matches, IsInt, IsIn, IsEnum, IsDate, IsString, ValidateNested
 } from 'class-validator';
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import { Receptor } from './Receptor';
+import { Emisor } from './Emisor';
+import { RucType } from './RucType';
+import { AutorizadoDescargar } from './AutorizadoDescargar';
 
 export enum TipoRuc {
     Natural = 1,
     Juridico = 2,
-}
-
-export class RucType {
-    @IsEnum(TipoRuc)
-    public dTipoRuc: TipoRuc;
-
-    @Matches('(([P][E][-](([-]|[0-9]){1,17})|[N][-](([-]|[0-9]){1,18})|[E][-](([-]|[0-9]){1,18})|(([-]|[0-9]){5,20}))|(((([0-9]{1})[-][A][V][-](([-]|[0-9]){1,15}))|(([0-9]{2})[-][A][V][-](([-]|[0-9]){1,14})))|((([0-9]{1,2})[-][N][T][-](([-]|[0-9]){1,15}))|(([0-9]{1,2})[-][N][T][-](([-]|[0-9]){1,14}))|([N][T][-](([-]|[0-9]){1,14}))|(([0-9]{1,2})[-][P][I][-](([-]|[0-9]){1,14}))|([P][I][-](([-]|[0-9]){1,14}))|(([0-9]){1,2}[P][I][-](([-]|[0-9]){1,14})))))?')
-    public dRuc: string;
-
-    @Matches('[0-9]{2}')
-    public dDV: string;
 }
 
 export type RucRecType = RucType;
@@ -115,51 +108,6 @@ export enum TipoReceptor {
     Extranjero = '04',
 }
 
-export class AutorizadoDescargar {
-    public gRucAutXML: RucType;
-}
-
-export class CodigoUbicacionType {
-    // Lookup
-    public dCodUbi: string;
-
-    @MaxLength(50)
-    public dCorreg: string;
-
-    @MaxLength(50)
-    public dDistr: string;
-
-    @MaxLength(50)
-    public dProv: string;
-}
-
-export class Emisor {
-    public gRucEmi: RucType;
-
-    @MaxLength(100)
-    public dNombEm: string;
-
-    @Matches('[a-zA-Z0-9]{4}')
-    public dSucEm: string;
-
-    @MaxLength(22)
-    @Matches('^([-+]?)([\d]{1,2})(((\.)[\d]{4,6}(,)))(-([\d]{2})(\.)[\d]{4,6})$')
-    public dCoordEm: string;
-
-    @MaxLength(100)
-    public dDirecEm: string;
-
-    public gUbiEm: CodigoUbicacionType;
-
-    @ArrayMaxSize(3)
-    @Matches(`[0-9]{3,4}-[0-9]{4}`)
-    public dTfnEm: string[];
-
-    @ArrayMaxSize(3)
-    @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
-    public dCorElecEmi?: string[];
-}
-
 export class EmailType {
     public value: string;
 }
@@ -168,94 +116,98 @@ export class PhoneType {
     public value: string;
 }
 
-export class IdExtType {
-    @MaxLength(50)
-    public dIdExt: string;
-
-    @MaxLength(100)
-    public dPaisExt: string;
-}
-
-
-
-export class Receptor {
-    @IsEnum(TipoReceptor)
-    public iTipoRec: TipoReceptor;
-
-    public gRucRec: RucRecType;
-
-    @MaxLength(100)
-    public dNombRec?: string;
-
-    @MaxLength(100)
-    public dDirecRec?: string;
-
-    public gUbiRec?: CodigoUbicacionType;
-
-    public gIdExtType?: IdExtType;
-    @ArrayMaxSize(3)
-    @Matches(`[0-9]{3,4}-[0-9]{4}`)
-    public dTfnRec: string[];
-
-    @ArrayMaxSize(3)
-    @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
-    public dCorElecRec?: string[];
-
-    // Lookup
-    public cPaisRec: string;
-
-    @MaxLength(50)
-    @MinLength(5)
-    public cPaisRecDesc?: string;
-}
-
 export class DGen {
 
+    /**
+     * Ambientes de destino de la FE
+     */
     @IsEnum(TipoAmbiente)
     public iAmb: TipoAmbiente;
 
+    /**
+     * Tipo de Emision
+     */
     @IsEnum(TipoEmision)
     public iTpEmis: TipoEmision;
 
+    /**
+     *             ID: B04 Fecha y hora de inicio de la operación en contingencia
+     */
     @IsDate()
     public dFechaCont?: Date;
 
+    /**
+     * Razón de la operación en contingencia
+     */
     @MaxLength(150)
     @MinLength(15)
     public dMotCont?: string;
 
+    /**
+     *             ID: B06 - Tipo de documento
+     */
     @IsEnum(TipoDocumento)
     public iDoc: TipoDocumento;
 
+    /**
+     *             B07: Número del documento fiscal en la serie correspondiente, de 000000001 a 999999999, no siendo permitido el reinicio de la numeración.
+     */
     @Matches('^(?=.*[1-9].*)[0-9]{10}$')
     public dNroDF: string;
 
+    /**
+     *             B08: Punto de Facturación del documento fiscal. La serie sirve para permitir que existan secuencias independientes de numeración de facturas, con diversas finalidades, sea por libre elección del emisor, tales como puntos de facturación distintos (como cajas de un supermercado, o bodegas de un distribuidor), tipos de productos, especies de operación, etc., sea para finalidades que vengan  a ser determinadas por la DIRECCIÓN GENERAL DE INGRESOS.
+     */
     @Matches('^^(?=.*[1-9].*)[0-9]{3}$')
     public dPtoFacDF: string;
 
+    /**
+     *             B09: Codigo de seguridad.
+     */
     @Matches('(?=.*[1-9].*)[0-9]{9}')
     public dSeg: string;
 
+    /**
+     *             B10: Fecha de emisión del documento
+     */
     @IsDate()
     public dFechaEm: Date;
 
+    /**
+     *             B11: Fecha de salida de las mercancías. Informar cuando sea conocida
+     */
     @IsDate()
     public dFechaSalida?: Date;
 
+    /**
+     *             B12: Naturaleza de la Operación
+     */
     @IsEnum(TipoNaturalezaOperacion)
     public iNatOp: TipoNaturalezaOperacion;
 
 
+    /**
+     *             B13: Tipo de la operación
+     */
     @IsEnum(TipoOperacion)
     public iTipoOp: TipoOperacion;
 
+    /**
+     *             B14: Destino u origen de la operación
+     */
     @IsEnum(Destino)
     public iDest: Destino;
 
+    /**
+     *             B15: Formato de generación del CAFE
+     */
     @IsEnum(FormularioCafe)
     public iFormCafe: FormularioCafe;
 
 
+    /**
+     *             B16: Manera de entrega del CAFE al receptor
+     */
     @IsEnum(EntregaCafe)
     public iEntCafe: EntregaCafe;
 
@@ -266,29 +218,43 @@ export class DGen {
     @IsEnum(EnvioContenedorFE)
     public dEnvFe: EnvioContenedorFE;
 
+    /**
+     *             B18: Proceso de generación de la FE
+     */
     @IsEnum(TipoGeneracion)
     public iProGen: TipoGeneracion;
 
 
-    @IsEnum(TipoTransaccionVenta) 
+    /**
+     *             B19: Tipo de transacción de venta
+     */
+    @IsEnum(TipoTransaccionVenta)
     public iTipoTranVenta?: TipoTransaccionVenta;
 
 
+    /**
+     *             B20: Tipo de Sucursal
+     */
     @IsEnum(TipoSucursal)
     public iTipoSuc?: TipoSucursal;
 
+    /**
+     *             B29: Informaciones de interés del emitente con respecto a la FE
+     */
     @MaxLength(5000)
     public dIntEmFe?: string;
 
     /***
      * Emisor
      */
+    @ValidateNested()
     public gEmis: Emisor;
 
     /**
      * Receptor
      */
-    public gDatRef: Receptor;
+    @ValidateNested()
+    public gDatRec: Receptor;
 
     // public gFExp?: Exportacion;
 
@@ -299,7 +265,53 @@ export class DGen {
     @ArrayMaxSize(10)
     public gAutXML?: AutorizadoDescargar[];
 
-    public toXmlObject(builder: XMLBuilder){
-        return builder;
+    public toXmlObject?(parent: XMLBuilder) {
+
+        let node = parent.ele('gDGen')
+            .ele('iAmb').txt(this.iAmb.toFixed()).up()
+            .ele('iTpEmis').txt(this.iTpEmis).up();
+
+
+        if (this.dIntEmFe) {
+            node = node.ele('dIntEmFe').txt(this.dIntEmFe).up();
+        }
+
+
+        if (this.dFechaCont) {
+            node = node.ele('dFechaCont').txt(this.dFechaCont.toUTCString()).up();
+        }
+
+        if (this.dFechaSalida) {
+            node = node.ele('dFechaSalida').txt(this.dFechaSalida.toUTCString()).up();
+        }
+
+        if (this.iTipoTranVenta) {
+            node = node.ele('iTipoTranVenta').txt(this.iTipoTranVenta.toFixed()).up();
+        }
+
+        if (this.dMotCont) {
+            node = node.ele('dMotCont').txt(this.dMotCont).up();
+        }
+        node = node.ele('iDoc').txt(this.iDoc).up()
+            .ele('dNroDF').txt(this.dNroDF).up()
+            .ele('dPtoFacDF').txt(this.dPtoFacDF).up()
+            .ele('dFechaEm').txt(this.dFechaEm.toUTCString()).up()
+            .ele('iNatOp').txt(this.iNatOp).up()
+            .ele('iTipoOp').txt(this.iTipoOp.toFixed()).up()
+            .ele('iDest').txt(this.iDest.toFixed()).up()
+            .ele('iFormCAFE').txt(this.iFormCafe.toFixed()).up()
+            .ele('iEntCafe').txt(this.iEntCafe.toFixed()).up()
+            .ele('dEnvFe').txt(this.dEnvFe.toFixed()).up()
+            .ele('iProGen').txt(this.iProGen.toFixed()).up();
+
+        node = this.gEmis.toXmlObject(node).up();
+        node = this.gDatRec.toXmlObject(node).up();
+
+        if (this.gAutXML) {
+            this.gAutXML.forEach(i => {
+                node = node.ele(i.gRucAutXML.toXmlObject('gRucAutXML', node)).up();
+            });
+        }
+        return node;
     }
 }
