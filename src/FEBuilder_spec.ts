@@ -130,28 +130,28 @@ describe("FEBuilder", function () {
         dId: 'FE01200000000000029-29-29-5676322018101525982740639300126729580548',
         dVerForm: 1.00,
         gDGen,
-        gItem:[{
-          dSecItem: 1,
-          dDescProd:  'lol',
-          cCantCodInt: '0xab123'
-        }],
-        gTot:{
-          dNroItems: 1,
-          dTotGravado: 100,
-          dTotITBMS: 0.07,
-          dTotNeto:  100,
-          dTotRec: 1.07,
-          dVTot: 1.07,
-          dVTotItems: 1,
-          iPzPag:  TiempoPago.Inmediato,
-          gFormaPago: [{
-            iFormaPago: FormaPago.ACH,
-            dVlrCuota: 1,
-          }]
-        }
+        // gItem:[{
+        //   dSecItem: 1,
+        //   dDescProd:  'lol',
+        //   cCantCodInt: '0xab123'
+        // }],
+        // gTot:{
+        //   dNroItems: 1,
+        //   dTotGravado: 100,
+        //   dTotITBMS: 0.07,
+        //   dTotNeto:  100,
+        //   dTotRec: 1.07,
+        //   dVTot: 1.07,
+        //   dVTotItems: 1,
+        //   iPzPag:  TiempoPago.Inmediato,
+        //   gFormaPago: [{
+        //     iFormaPago: FormaPago.ACH,
+        //     dVlrCuota: 1,
+        //   }]
+        // }
       });
 
-
+     
     const res = await rfe.toXml();
     latestFEDocument = res;
     expect(res).equal(testMatch);

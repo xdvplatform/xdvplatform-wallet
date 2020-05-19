@@ -15,21 +15,21 @@ export class TypedRFE {
   public gDGen: DGen;
 
 
-  /**
-   *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
-   */
-  @IsDefined()
-  @ArrayMaxSize(1000)
-  @ValidateNested()
-  public gItem: Item[];
+  // /**
+  //  *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
+  //  */
+  // @IsDefined()
+  // @ArrayMaxSize(1000)
+  // @ValidateNested()
+  // public gItem: Item[];
 
 
-  /**
-   *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
-   */
-  @IsDefined()
-  @ValidateNested()
-  public gTot: Totales;
+  // /**
+  //  *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
+  //  */
+  // @IsDefined()
+  // @ValidateNested()
+  // public gTot: Totales;
 }
 
 export const Plantillas = {
