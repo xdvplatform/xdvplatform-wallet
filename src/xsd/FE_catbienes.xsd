@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="BienesServicios"
+    targetNamespace="http://dgi-fep.mef.gob.pa"
+    elementFormDefault="qualified"
+    xmlns="http://dgi-fep.mef.gob.pa"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+
+  <xs:simpleType name="catBienes">
+    <xs:restriction base="xs:string">
+
+        <xs:enumeration value="10" >
+             <xs:annotation>
+                  <xs:documentation>Material Vivo Vegetal y Animal, Accesorios y Suministros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="11" >
+             <xs:annotation>
+                  <xs:documentation>Material Mineral, Textil y Vegetal y Animal No Comestible</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="12" >
+             <xs:annotation>
+                  <xs:documentation>Material Químico incluyendo Bioquímicos y Materiales de Gas</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="13" >
+             <xs:annotation>
+                  <xs:documentation>Materiales de Resina, Colofonia, Caucho, Espuma, Película y Elastómericos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="14" >
+             <xs:annotation>
+                  <xs:documentation>Materiales y Productos de Papel</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="15" >
+             <xs:annotation>
+                  <xs:documentation>Materiales Combustibles, Aditivos para Combustibles, Lubricantes y Anticorrosivos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="20" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria y Accesorios de Minería y Perforación de Pozos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="21" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria y Accesorios para Agricultura, Pesca, Silvicultura y Fauna</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="22" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria y Accesorios para Construcción y Edificación</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="23" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria y Accesorios para Manufactura y Procesamiento Industrial</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="24" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria, Accesorios y Suministros para Manejo, Acondicionamiento y Almacenamiento de Materiales</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="25" >
+             <xs:annotation>
+                  <xs:documentation>Vehículos Comerciales, Militares y Particulares, Accesorios y Componentes</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="26" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria y Accesorios para Generación y Distribución de Energía</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="27" >
+             <xs:annotation>
+                  <xs:documentation>Herramientas y Maquinaria General</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="30" >
+             <xs:annotation>
+                  <xs:documentation>Componentes y Suministros para Estructuras, Edificación, Construcción y Obras Civiles</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="31" >
+             <xs:annotation>
+                  <xs:documentation>Componentes y Suministros de Manufactura</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="32" >
+             <xs:annotation>
+                  <xs:documentation>Componentes y Suministros Electrónicos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="39" >
+             <xs:annotation>
+                  <xs:documentation>Componentes, Accesorios y Suministros de Sistemas Eléctricos e Iluminación</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="40" >
+             <xs:annotation>
+                  <xs:documentation>Componentes y Equipos para Distribución y Sistemas de Acondicionamiento</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="41" >
+             <xs:annotation>
+                  <xs:documentation>Equipos y Suministros de Laboratorio, de Medición, de Observación y de Pruebas</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="42" >
+             <xs:annotation>
+                  <xs:documentation>Equipo Médico, Accesorios y Suministros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="43" >
+             <xs:annotation>
+                  <xs:documentation>Difusión de Tecnologías de Información y Telecomunicaciones</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="44" >
+             <xs:annotation>
+                  <xs:documentation>Equipos de Oficina, Accesorios y Suministros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="45" >
+             <xs:annotation>
+                  <xs:documentation>Equipos y Suministros para Impresión, Fotografia y Audiovisuales</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="46" >
+             <xs:annotation>
+                  <xs:documentation>Equipos y Suministros de Defensa, Orden Publico, Proteccion, Vigilancia y Seguridad</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="47" >
+             <xs:annotation>
+                  <xs:documentation>Equipos de Limpieza y Suministros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="48" >
+             <xs:annotation>
+                  <xs:documentation>Maquinaria, Equipo y Suministros para la Industria de Servicios</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="49" >
+             <xs:annotation>
+                  <xs:documentation>Equipos, Suministros y Accesorios para Deportes y Recreación</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="50" >
+             <xs:annotation>
+                  <xs:documentation>Alimentos, Bebidas y Tabaco</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="51" >
+             <xs:annotation>
+                  <xs:documentation>Medicamentos y Productos Farmacéuticos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="52" >
+             <xs:annotation>
+                  <xs:documentation>Artículos Domésticos, Suministros y Productos Electrónicos de Consumo</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="53" >
+             <xs:annotation>
+                  <xs:documentation>Ropa, Maletas y Productos de Aseo Personal</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="54" >
+             <xs:annotation>
+                  <xs:documentation>Productos para Relojería, Joyería y Piedras Preciosas</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="55" >
+             <xs:annotation>
+                  <xs:documentation>Publicaciones Impresas, Publicaciones Electrónicas y Accesorios</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="56" >
+             <xs:annotation>
+                  <xs:documentation>Muebles, Mobiliario y Decoración</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="60" >
+             <xs:annotation>
+                  <xs:documentation>Instrumentos Musicales, Juegos, Juguetes, Artes, Artesanías y Equipo educativo, Materiales, Accesorios y Suministros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="70" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Contratacion Agrícola, Pesquera, Forestal y de Fauna</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="71" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Minería, Petróleo y Gas</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="72" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Edificación, Construcción de Instalaciones y Mantenimiento</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="73" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Producción Industrial y Manufactura</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="76" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Limpieza, Descontaminación y Tratamiento de Residuos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="77" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Medioambientales</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="78" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Transporte, Almacenaje y Correo</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="80" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Gestión, Servicios Profesionales de Empresa y Servicios Administrativos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="81" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Basados en Ingeniería, Investigación y Tecnología</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="82" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Editoriales, de Diseño, de Artes Graficas y Bellas Artes</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="83" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Públicos y Servicios Relacionados con el Sector Público</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="84" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Financieros y de Seguros</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="85" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Salud</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="86" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Educativos y de Formación</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="90" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Viajes, Alimentación, Alojamiento y Entretenimiento</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="91" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Personales y Domésticos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="92" >
+             <xs:annotation>
+                  <xs:documentation>Servicios de Defensa Nacional, Orden Publico, Seguridad y Vigilancia</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="93" >
+             <xs:annotation>
+                  <xs:documentation>Servicios Políticos y de Asuntos Cívicos</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="94" >
+             <xs:annotation>
+                  <xs:documentation>Organizaciones y Clubes</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+        <xs:enumeration value="95" >
+             <xs:annotation>
+                  <xs:documentation>Terrenos, Edificios, Estructuras y Vías</xs:documentation>
+             </xs:annotation>
+        </xs:enumeration>
+
+    </xs:restriction>
+  </xs:simpleType>   <!--  Final de <xs:simpleType name="catBienes">   -->
+</xs:schema>

@@ -5,5 +5,5 @@ export * from './InfoLog';
 export * from './Item';
 export * from './LcEntr';
 export * from './PedComGl';
-export * from './Tot';
+export * from './Totales';
 

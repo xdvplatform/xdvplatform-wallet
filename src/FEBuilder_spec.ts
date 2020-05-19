@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import { FEBuilder, TypedRFE, Plantillas } from './FEBuilder';
-import { Destino, FormularioCafe, TipoAmbiente, TipoEmision, TipoDocumento, TipoNaturalezaOperacion, TipoOperacion, EnvioContenedorFE, TipoGeneracion, TipoTransaccionVenta, RucType, TipoRuc, EntregaCafe, TipoReceptor, DGen } from './models';
+import { Destino, FormularioCafe, TipoAmbiente, TipoEmision, TipoDocumento, TipoNaturalezaOperacion, TipoOperacion, EnvioContenedorFE, TipoGeneracion, TipoTransaccionVenta, RucType, TipoRuc, EntregaCafe, TipoReceptor, DGen, TiempoPago, FormaPago } from './models';
 import { Ubicaciones } from './models/Ubicaciones';
 import { Paises } from './models/Paises';
 import * as forge from 'node-forge'
@@ -129,7 +129,26 @@ describe("FEBuilder", function () {
       .rFE({
         dId: 'FE01200000000000029-29-29-5676322018101525982740639300126729580548',
         dVerForm: 1.00,
-        gDGen
+        gDGen,
+        gItem:[{
+          dSecItem: 1,
+          dDescProd:  'lol',
+          cCantCodInt: '0xab123'
+        }],
+        gTot:{
+          dNroItems: 1,
+          dTotGravado: 100,
+          dTotITBMS: 0.07,
+          dTotNeto:  100,
+          dTotRec: 1.07,
+          dVTot: 1.07,
+          dVTotItems: 1,
+          iPzPag:  TiempoPago.Inmediato,
+          gFormaPago: [{
+            iFormaPago: FormaPago.ACH,
+            dVlrCuota: 1,
+          }]
+        }
       });
 
 

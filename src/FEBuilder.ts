@@ -1,4 +1,4 @@
-import { DGen, DVerForm, DId, TipoAmbiente, FormularioCafe, EntregaCafe, TipoGeneracion, Destino, TipoEmision, TipoDocumento, EnvioContenedorFE } from './models';
+import { DGen, DVerForm, DId, TipoAmbiente, FormularioCafe, EntregaCafe, TipoGeneracion, Destino, TipoEmision, TipoDocumento, EnvioContenedorFE, Item, Totales } from './models';
 import { IsPositive, Min, IsEthereumAddress, MinLength, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, Matches, ValidateNested, IsNumber } from 'class-validator';
 import { create } from 'xmlbuilder2';
 
@@ -13,6 +13,23 @@ export class TypedRFE {
   @IsDefined()
   @ValidateNested()
   public gDGen: DGen;
+
+
+  /**
+   *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
+   */
+  @IsDefined()
+  @ArrayMaxSize(1000)
+  @ValidateNested()
+  public gItem: Item[];
+
+
+  /**
+   *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
+   */
+  @IsDefined()
+  @ValidateNested()
+  public gTot: Totales;
 }
 
 export const Plantillas = {
