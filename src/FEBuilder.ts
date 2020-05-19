@@ -56,7 +56,9 @@ export class FEBuilder {
       }
     }).ele('rFE')
       .ele('dVerForm').txt(this._rFE.dVerForm.toFixed(2)).up()
-      .ele('dId').txt(this._rFE.dId).up()
+      .ele('dId').txt(this._rFE.dId).up();
+
+     let parent = this._rFE.gDGen.toXmlObject(doc).up()
       .doc();
 
     const xmlString = doc.end({ headless: true, prettyPrint: false });

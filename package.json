@@ -15,7 +15,9 @@
   "devDependencies": {
     "@types/expect": "^24.3.0",
     "@types/mocha": "^7.0.2",
+    "@types/node": "^14.0.1",
     "chai": "^4.2.0",
+    "libxmljs": "^0.19.7",
     "mocha": "^7.1.2",
     "ts-mocha": "^7.0.0",
     "ts-node-dev": "^1.0.0-pre.44",

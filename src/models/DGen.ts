@@ -3,15 +3,16 @@ import {
     MaxLength, validateOrReject, arrayMinSize,
     ArrayMinSize, ArrayMaxSize, Matches, IsInt, IsIn, IsEnum, IsDate, IsString
 } from 'class-validator';
+import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
 
-export enum TipoRucEnum {
+export enum TipoRuc {
     Natural = 1,
     Juridico = 2,
 }
 
 export class RucType {
-    @IsEnum(TipoRucEnum)
-    public dTipoRuc: TipoRucEnum;
+    @IsEnum(TipoRuc)
+    public dTipoRuc: TipoRuc;
 
     @Matches('(([P][E][-](([-]|[0-9]){1,17})|[N][-](([-]|[0-9]){1,18})|[E][-](([-]|[0-9]){1,18})|(([-]|[0-9]){5,20}))|(((([0-9]{1})[-][A][V][-](([-]|[0-9]){1,15}))|(([0-9]{2})[-][A][V][-](([-]|[0-9]){1,14})))|((([0-9]{1,2})[-][N][T][-](([-]|[0-9]){1,15}))|(([0-9]{1,2})[-][N][T][-](([-]|[0-9]){1,14}))|([N][T][-](([-]|[0-9]){1,14}))|(([0-9]{1,2})[-][P][I][-](([-]|[0-9]){1,14}))|([P][I][-](([-]|[0-9]){1,14}))|(([0-9]){1,2}[P][I][-](([-]|[0-9]){1,14})))))?')
     public dRuc: string;
@@ -22,7 +23,7 @@ export class RucType {
 
 export type RucRecType = RucType;
 
-export enum DocumentTypeEnum {
+export enum TipoDocumento {
     FacturaOpsInterna = '01',
     FacturaImportacion = '02',
     FacturaExportacion = '03',
@@ -34,14 +35,14 @@ export enum DocumentTypeEnum {
     Reembolso = '09'
 }
 
-export enum TipoEmisionEnum {
+export enum TipoEmision {
     UsoPrevioOpsNormal = '01',
     UsoPrevioOpsContigencia = '02',
     UsoPosteriorOpsNormal = '03',
     UsoPosteriorOpsContigencia = '04'
 }
 
-export enum NatOpTypeEnum {
+export enum TipoNaturalezaOperacion {
     Venta = '01',
     Exportacion = '02',
     Transferencia = '10',
@@ -53,34 +54,34 @@ export enum NatOpTypeEnum {
     Importacion = '21'
 }
 
-export enum OperationTypeEnum {
+export enum TipoOperacion {
     Venta = 1,
     Compra = 2
 }
 
-export enum DestinationEnum {
+export enum Destino {
     Panama = 1,
     Extranjero = 2,
 }
 
-export enum FormCafeEnum {
+export enum FormularioCafe {
     SinGeneracionCAFE = 1,
     CintaPapel = 2,
     PapelFormatoCarta = 3
 }
 
-export enum EntCafeEnum {
+export enum EntregaCafe {
     SinGeneracionCAFE = 1,
     EntregadoReceptorEnPapel = 2,
     EnviadoReceptorElectronicamente = 3
 }
 
-export enum dEnvFEEnum {
+export enum EnvioContenedorFE {
     Normal = 1,
     ReceptorExceptuaAlEmisorObligEnvioContenido = 2
 }
 
-export enum GeneratopnTypeEnum {
+export enum TipoGeneracion {
     SistemaFacturacionContribuyente = 1,
     TerceroContratado = 2,
     TerceroProveedorSolucion = 3,
@@ -88,26 +89,26 @@ export enum GeneratopnTypeEnum {
     DGIMobileApp = 5,
 }
 
-export enum TipoTranVentaEnum {
+export enum TipoTransaccionVenta {
     Giro = 1,
     ActivoFijo = 2,
     BienesRaices = 3,
     PrestacionServicio = 4
 }
 
-export enum TipoSucursalEnum {
+export enum TipoSucursal {
     Retail = 1,
     AlPorMayor = 2,
 }
 
 
-export enum TipoAmbienteEnum {
+export enum TipoAmbiente {
     Produccion = 1,
     Pruebas = 2,
 }
 
 
-export enum TipoReceptorEnum {
+export enum TipoReceptor {
     Contribuyente = '01',
     ConsumidorFinal = '02',
     Gobierno = '03',
@@ -151,19 +152,19 @@ export class Emisor {
     public gUbiEm: CodigoUbicacionType;
 
     @ArrayMaxSize(3)
-    public dTfnEm: PhoneType[];
+    @Matches(`[0-9]{3,4}-[0-9]{4}`)
+    public dTfnEm: string[];
 
     @ArrayMaxSize(3)
-    public dCorElecEmi?: EmailType[];
+    @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
+    public dCorElecEmi?: string[];
 }
 
 export class EmailType {
-    @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
     public value: string;
 }
 
 export class PhoneType {
-    @Matches(`[0-9]{3,4}-[0-9]{4}`)
     public value: string;
 }
 
@@ -178,8 +179,8 @@ export class IdExtType {
 
 
 export class Receptor {
-    @IsEnum(TipoReceptorEnum)
-    public iTipoRec: TipoReceptorEnum;
+    @IsEnum(TipoReceptor)
+    public iTipoRec: TipoReceptor;
 
     public gRucRec: RucRecType;
 
@@ -192,12 +193,13 @@ export class Receptor {
     public gUbiRec?: CodigoUbicacionType;
 
     public gIdExtType?: IdExtType;
+    @ArrayMaxSize(3)
+    @Matches(`[0-9]{3,4}-[0-9]{4}`)
+    public dTfnRec: string[];
 
     @ArrayMaxSize(3)
-    public dTfnRec: PhoneType[];
-
-    @ArrayMaxSize(3)
-    public dCorElectRef?: EmailType[];
+    @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
+    public dCorElecRec?: string[];
 
     // Lookup
     public cPaisRec: string;
@@ -208,12 +210,12 @@ export class Receptor {
 }
 
 export class DGen {
-    
-    @IsEnum(TipoAmbienteEnum)
-    public iAmb: TipoAmbienteEnum;
 
-    @IsEnum(TipoEmisionEnum)
-    public iTpEmis: TipoEmisionEnum;
+    @IsEnum(TipoAmbiente)
+    public iAmb: TipoAmbiente;
+
+    @IsEnum(TipoEmision)
+    public iTpEmis: TipoEmision;
 
     @IsDate()
     public dFechaCont?: Date;
@@ -222,8 +224,8 @@ export class DGen {
     @MinLength(15)
     public dMotCont?: string;
 
-    @IsEnum(DocumentTypeEnum)
-    public iDoc: DocumentTypeEnum;
+    @IsEnum(TipoDocumento)
+    public iDoc: TipoDocumento;
 
     @Matches('^(?=.*[1-9].*)[0-9]{10}$')
     public dNroDF: string;
@@ -240,43 +242,53 @@ export class DGen {
     @IsDate()
     public dFechaSalida?: Date;
 
-    @IsEnum(NatOpTypeEnum)
-    public iNatOp: NatOpTypeEnum;
+    @IsEnum(TipoNaturalezaOperacion)
+    public iNatOp: TipoNaturalezaOperacion;
 
 
-    @IsEnum(OperationTypeEnum)
-    public iTipoOp: OperationTypeEnum;
+    @IsEnum(TipoOperacion)
+    public iTipoOp: TipoOperacion;
 
-    @IsEnum(DestinationEnum)
-    public iDest: DestinationEnum;
+    @IsEnum(Destino)
+    public iDest: Destino;
 
-    @IsEnum(FormCafeEnum)
-    public iFormCafe: FormCafeEnum;
-
-
-    @IsEnum(EntCafeEnum)
-    public iEntCafe: EntCafeEnum;
-
-    @IsEnum(dEnvFEEnum)
-    public dEnvFe: dEnvFEEnum;
-
-    @IsEnum(GeneratopnTypeEnum)
-    public iProGen: GeneratopnTypeEnum;
+    @IsEnum(FormularioCafe)
+    public iFormCafe: FormularioCafe;
 
 
-    @IsEnum(TipoTranVentaEnum)
-    public iTipoTranVenta?: TipoTranVentaEnum;
+    @IsEnum(EntregaCafe)
+    public iEntCafe: EntregaCafe;
+
+    /***
+            B17: Envío del contenedor para el receptor
+     * 
+     */
+    @IsEnum(EnvioContenedorFE)
+    public dEnvFe: EnvioContenedorFE;
+
+    @IsEnum(TipoGeneracion)
+    public iProGen: TipoGeneracion;
 
 
-    @IsEnum(TipoSucursalEnum)
-    public iTipoSuc?: TipoSucursalEnum;
+    @IsEnum(TipoTransaccionVenta) 
+    public iTipoTranVenta?: TipoTransaccionVenta;
+
+
+    @IsEnum(TipoSucursal)
+    public iTipoSuc?: TipoSucursal;
 
     @MaxLength(5000)
     public dIntEmFe?: string;
 
+    /***
+     * Emisor
+     */
     public gEmis: Emisor;
 
-    public dDatRef: Receptor;
+    /**
+     * Receptor
+     */
+    public gDatRef: Receptor;
 
     // public gFExp?: Exportacion;
 
@@ -287,4 +299,7 @@ export class DGen {
     @ArrayMaxSize(10)
     public gAutXML?: AutorizadoDescargar[];
 
+    public toXmlObject(builder: XMLBuilder){
+        return builder;
+    }
 }
