@@ -1,9 +1,22 @@
+export * from './AutorizadoDescargar';
+export * from './CatBienes';
+export * from './CodigoUbicacionType';
 export * from './DGen';
 export * from './DId';
 export * from './DVerForm';
-// export * from './InfoLog';
-export * from './Item';
+export * from './DVerForm';
+export * from './DescBienes';
+export * from './Emisor';
+export * from './IdExtType';
+//export * from './InfoLog';
 // export * from './LcEntr';
+export * from './Paises';
 // export * from './PedComGl';
+export * from './Receptor';
+export * from './RucType';
 export * from './Totales';
+export * from './Ubicaciones';
+export * from './Unidades';
+export * from './Item';
+export * from './Monedas';
 
