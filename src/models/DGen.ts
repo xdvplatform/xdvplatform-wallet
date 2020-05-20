@@ -1,3 +1,4 @@
+import moment from 'moment';
 import {
     IsPositive, Min, IsEthereumAddress, MinLength,
     MaxLength, validateOrReject, arrayMinSize,
@@ -268,7 +269,7 @@ export class DGen {
     public static toXmlObject(instance: DGen, parent: XMLBuilder) {
 
         let node = parent.ele('gDGen')
-            .ele('iAmb').txt(instance.iAmb.toFixed()).up()
+            .ele('iAmb').txt((<TipoAmbiente>instance.iAmb).toFixed()).up()
             .ele('iTpEmis').txt(instance.iTpEmis).up();
 
 
@@ -278,11 +279,11 @@ export class DGen {
 
 
         if (instance.dFechaCont) {
-            node = node.ele('dFechaCont').txt(instance.dFechaCont.toISOString()).up();
+            node = node.ele('dFechaCont').txt(moment(instance.dFechaCont).format()).up();
         }
 
         if (instance.dFechaSalida) {
-            node = node.ele('dFechaSalida').txt(instance.dFechaSalida.toISOString()).up();
+            node = node.ele('dFechaSalida').txt(moment(instance.dFechaSalida).format()).up();
         }
 
         if (instance.iTipoTranVenta) {
@@ -295,7 +296,7 @@ export class DGen {
         node = node.ele('iDoc').txt(instance.iDoc).up()
             .ele('dNroDF').txt(instance.dNroDF).up()
             .ele('dPtoFacDF').txt(instance.dPtoFacDF).up()
-            .ele('dFechaEm').txt(instance.dFechaEm.toISOString()).up()
+            .ele('dFechaEm').txt(moment(instance.dFechaEm).format()).up()
             .ele('iNatOp').txt(instance.iNatOp).up()
             .ele('iTipoOp').txt(instance.iTipoOp.toFixed()).up()
             .ele('iDest').txt(instance.iDest.toFixed()).up()

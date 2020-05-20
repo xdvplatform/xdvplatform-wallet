@@ -1,36 +1,7 @@
 import { DGen, DVerForm, DId, TipoAmbiente, FormularioCafe, EntregaCafe, TipoGeneracion, Destino, TipoEmision, TipoDocumento, EnvioContenedorFE, Item, Totales } from './models';
-import { IsPositive, Min, IsEthereumAddress, MinLength, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, Matches, ValidateNested, IsNumber } from 'class-validator';
+import { IsPositive, Min, IsEthereumAddress, MaxLength, validateOrReject, arrayMinSize, ArrayMinSize, ArrayMaxSize, IsDefined, ValidateNested } from 'class-validator';
 import { create } from 'xmlbuilder2';
-
-export class TypedRFE {
-  @IsNumber()
-  public dVerForm: number;
-
-  @Matches(/[F][E](([A|V|T|E|P|N|I]|[-]|[a-zA-Z0-9]){64})?/)
-  @MinLength(64)
-  public dId: string;
-
-  @IsDefined()
-  @ValidateNested()
-  public gDGen: DGen;
-
-
-  // /**
-  //  *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
-  //  */
-  // @IsDefined()
-  // @ArrayMaxSize(1000)
-  // @ValidateNested()
-  // public gItem: Item[];
-
-
-  // /**
-  //  *               C01: Grupo de datos que especifica cada ítem del detalle de la transacción
-  //  */
-  // @IsDefined()
-  // @ValidateNested()
-  // public gTot: Totales;
-}
+import { TypedRFE } from './TypedRFE';
 
 export const Plantillas = {
   PruebasFechas: (dt) => ({
@@ -93,8 +64,19 @@ export class FEBuilder {
       .ele('dId').txt(this._rFE.dId).up();
 
     console.log(this._rFE.gDGen)
-    let parent = DGen.toXmlObject(this._rFE.gDGen, doc).up()
-      .doc();
+    // add dGen
+    let parent = DGen.toXmlObject(this._rFE.gDGen, doc).up();
+
+    // add gItem
+    if (this._rFE.gItem) {
+      this._rFE.gItem.forEach(i => {
+          parent = Item.toXmlObject(i, parent).up();
+      });
+      // parent = parent.up()
+  }
+
+    // add gTot
+    parent = Totales.toXmlObject(this._rFE.gTot, parent).up();
 
     const xmlString = parent.end({ headless: true, prettyPrint: false });
     console.log(xmlString);

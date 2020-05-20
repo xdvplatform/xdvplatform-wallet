@@ -1,7 +1,68 @@
-import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize } from 'class-validator';
+import { Unidades } from './Unidades';
+import { CatBienes } from './CatBienes';
+import { DescBienes } from './DescBienes';
+
+import moment from 'moment';
+import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsDefined, IsNumber } from 'class-validator';
 import { RucType } from "./RucType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import { type } from 'os';
+
+
+export enum TasaISC {
+    /**
+     *                      Impuesto Selectivo al Consumo de Gaseosas
+                            Impuesto Selectivo al Consumo de Joyas y Armas de Fuego
+                            Impuesto Selectivo al Consumo de televisión por cable, microondas y satelital, telefonía móvil
+                            Impuesto Selectivo al Consumo de Bebidas Alcohólicas (B/. 0.05 por litro según detalle)
+                            Impuesto Selectivo al Consumo de Vinos (B/. 0.05 por litro según detalle)
+     */
+    Tasa5c = 0.05,
+    /** Jarabes, siropes o concentrados */
+    Tasa6c = 0.06,
+    /** Impuesto Selectivo al Consumo de Bebidas Espirituosas */
+    TasaBebidas = 0.00,
+    /** Impuesto Selectivo al Consumo de Cervezas(B/. 0.1325 por litro según detalle) */
+    Tasa13_20c = 0.1325,
+    /** Impuesto Selectivo al Consumo de Cigarrillos y tabacos */
+    Tasa32_50c = 0.325,
+    /** Impuesto Selectivo al Consumo de Licores */
+    Tasa3_50c = 0.035,
+    /**  Impuesto Selectivo al Consumo de Minería no metálica*/
+    TasaMineriaNoMetalica = 0.00
+}
+export enum TasaITBMS {
+    TasaExonerado = '00',
+    Tasa7Porc_Regular = '01',
+    Tasa10Porc_Alcoholes = '02',
+    Tasa15Porc_Cigarrillos = '03',
+}
+export class ITBMS {
+    public dTasaITBMS: TasaITBMS;
+
+    public dValITBMS: number;
+}
+export class CodigoItem {
+    dGTINCom: number;
+    dCantGTINCom: number;
+    dGTINInv: number;
+    dCantComInvent: number;
+}
+
+export class Precio {
+    dPrUnit: number;
+    dPrUnitDesc?: number;
+    dPrItem: number;
+    dPrAcarItem?: number;
+    dPrSegItem?: number;
+    dValTotItem: number;
+}
+export class ISC {
+    public dTasaISC: TasaISC;
+
+    public dValISC: number;
+}
 export class Item {
     @MaxLength(4)
     public dSecItem: number;
@@ -24,13 +85,14 @@ export class Item {
      *  
      */
     public cUnidad?: string;
-    
-    
+
+
     /**
      *    C06:Cantidad del producto o servicio en la unidad de medida del código interno
      */
-    @Matches(`^[0-9]{1,9}([.][0-9]{0,6})?`)
-    public cCantCodInt: string;
+    //@Matches(`^[0-9]{1,9}([.][0-9]{0,6})?`)
+    @IsNumber()
+    public cCantCodInt: number;
 
     /**
      *    C07:Fecha de fabricación/elaboración
@@ -38,20 +100,20 @@ export class Item {
      */
     public dFechaFab?: Date | string;  // \d{4}-\d\d-\d\d
 
-    
+
     /*
     *   C08:Fecha de caducidad
      * 
      */
     public dFechaCad?: Date | string; // \d{4}-\d\d-\d\d
 
-    
+
     /**
      *    C09:Código del Ítem en la Codificación Panameña de Bienes y Servicios Abreviada
      * 
      */
     public dCodCPBSabr?: string;
-    
+
     /**
      *    C10:Código del Ítem en la Codificación Panameña de Bienes y Servicios
      * 
@@ -70,31 +132,76 @@ export class Item {
     @MaxLength(5000)
     public dInfEmFE?: string;
 
+    @IsDefined()
+    public gPrecios: Precio;
 
-    
+    public gCodItem?: CodigoItem;
+
+    @IsDefined()
+    public gITBMSItem: ITBMS;
+
+    public gISCItem?: ISC;
+
+
+
+
     public static toXmlObject?(instance: Item, parent: XMLBuilder) {
 
-        // let node = parent.ele('gEmis');
-        // node = RucType.toXmlObject(instance.gRucEmi, 'gRucEmi', parent).up();
-        // node = CodigoUbicacionType.toXmlObject(instance.gUbiEm, 'gUbiEm', parent).up();
-        // node.ele('dNombEm').txt(instance.dNombEm).up()
-        //     .ele('dCoordEm').txt(instance.dCoordEm).up()
-        //     .ele('dDirecEm').txt(instance.dDirecEm).up()
-        //     .ele('gUbiEm').ele(instance.gUbiEm).up();
+        let node = parent.ele('gItem');
+        node.ele('cCantCodInt').txt(instance.cCantCodInt.toFixed()).up()
+            .ele('dDescProd').txt(instance.dDescProd).up()
+            .ele('dSecItem').txt(instance.dSecItem.toFixed()).up()
+
+        node = node.ele('gPrecios')
+            .ele('dPrItem').txt(instance.gPrecios.dPrItem.toFixed()).up()
+            .ele('dPrUnit').txt(instance.gPrecios.dPrUnit.toFixed()).up()
+            .ele('dValTotItem').txt(instance.gPrecios.dValTotItem.toFixed()).up()
+
+        node = node.ele('gITBMSItem')
+            .ele('dTasaITBMS').txt(instance.gITBMSItem.dTasaITBMS).up()
+            .ele('dValITBMS').txt(instance.gITBMSItem.dValITBMS.toFixed()).up()
 
 
-        // if (instance.dTfnEm) {
-        //     instance.dTfnEm.forEach(i => {
-        //         node = node.ele('dTfnEm').txt(i).up();
-        //     });
-        // }
-        // if (instance.dCorElecEmi) {
-        //     instance.dCorElecEmi.forEach(i => {
-        //         node = node.ele('dCorElecEmi').txt(i).up();
-        //     });
-        // }
-        // return node;
-        return null;
+        if (instance.dInfEmFE) {
+            node = node.ele('dInfEmFE').txt(instance.dInfEmFE).up();
+        }
+
+
+        if (instance.cUnidadCPBS) {
+            node = node.ele('cUnidadCPBS').txt(instance.cUnidadCPBS).up();
+        }
+
+
+        if (instance.dCodCPBScmp) {
+            node = node.ele('dCodCPBScmp').txt(instance.dCodCPBScmp).up();
+        }
+
+
+        if (instance.dCodCPBSabr) {
+            node = node.ele('dCodCPBSabr').txt(instance.dCodCPBSabr).up();
+        }
+
+
+        if (instance.dCodProd) {
+            node = node.ele('dCodProd').txt(instance.dCodProd).up();
+        }
+
+
+        if (instance.dFechaCad) {
+            node = node.ele('dFechaCad').txt(moment(instance.dFechaCad).format('YYYY-MM-DD')).up();
+        }
+
+
+        if (instance.dFechaFab) {
+            node = node.ele('dFechaFab').txt(moment(instance.dFechaFab).format('YYYY-MM-DD')).up();
+        }
+
+        if (instance.cUnidad) {
+            node = node.ele('cUnidad').txt(instance.cUnidad).up();
+        }
+
+
+        return node;
     }
 
 }

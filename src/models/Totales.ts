@@ -2,17 +2,17 @@ import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsNumbe
 import { RucType } from "./RucType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
+import moment from 'moment';
 
 
-interface gTotTypeGDescBonifType {
-
+export class Bonificaciones {
     /** D200: Descripción de descuentos o bonificaciones adicionales aplicados a la factura */
     dDetalDesc: string;
     /** D201: Monto Descuentos/Bonificaciones y otros ajustes */
     dValDesc: number;
 }
 
-export  class FormaPagoType {
+export class FormaPagoType {
     /** D302: Descripción de forma de pago no listada en el formato */
     dFormaPagoDesc?: string;
     /** D303: Valor de la fracción pagada utilizando esta forma de pago */
@@ -32,7 +32,7 @@ export enum FormaPago {
     ACH = '08',
     Otro = '99',
 }
-export class gTotTypeGOTITotalType {
+export class OtrosImpuestosTasas {
     /** D601:Código de Otras Tasas o Impuesto del total del ítem */
     dCodOTITotal: OtrosImpuestos;
     /** D602:Monto de Otras Tasas o Impuesto del total del ítem */
@@ -40,7 +40,7 @@ export class gTotTypeGOTITotalType {
 }
 
 
-export class gTotTypeGPagPlazoType {
+export class VencimientoPago {
     /** D502: Fecha de vencimiento de la fracción */
     dFecItPlazo: Date;
     /** D504: Informaciones de interés del emitente con respeto a  esta fracción de pago */
@@ -51,24 +51,31 @@ export class gTotTypeGPagPlazoType {
     dValItPlazo: number;
 }
 
-interface gTotTypeGRetencType {
+export class Retencion {
     /** D401: Código de Retención a aplicar */
-    cCodRetenc: gTotTypeGRetencTypeCCodRetencType;
+    cCodRetenc: CodigoRetencion;
     /** D402: Monto de la retención a aplicar */
     cValRetenc: number;
 }
 
-type gTotTypeGRetencTypeCCodRetencType = ("1" | "2" | "3" | "4" | "7" | "8");
+export enum CodigoRetencion {
+    PagoServicioProfesionalEstado100Porc = 1,
+    PagoVentaBienesServiciosEstado50Porc = 2,
+    PagoNoDomiciliadoEmpresaConstituidaExterior100Porc = 3,
+    PagoCompraBienesServicios50Porc = 4,
+    PagoComercionAfiliadoSistemaTC_TD50Porc = 7,
+    Otros = 8
+}
 
-export enum TiempoPago{
+export enum TiempoPago {
     Inmediato = 1,
     Plazo = 2,
     Mixto = 3,
 }
 
-export enum OtrosImpuestos{
+export enum OtrosImpuestos {
     Suma911 = 1,
-    TasaPortabilidadNumérica    = 2,
+    TasaPortabilidadNumérica = 2,
 }
 
 /** Definición de tipo para el grupo:
@@ -100,18 +107,18 @@ interface gTotType {
     dVuelto?: number;
 	/** Definición de tipo para el grupo:
 	  * D20: Grupo de datos de que describen descuentos o bonificaciones adicionales aplicados a la factura */
-    gDescBonif?: gTotTypeGDescBonifType[];
+      gDescBonif?: Bonificaciones[];
 	/** Definición de tipo para el grupo:
 	  * D30: Grupo de formas de pago de la factura */
     gFormaPago: FormaPagoType[];
     /** D60:Grupo de Total Otras Tasas o Impuestos (OTI) del Item */
-    gOTITotal?: gTotTypeGOTITotalType[];
+    gOTITotal?: OtrosImpuestosTasas[];
 	/** Definición de tipo para el grupo:
 	  * D50: Grupo de informaciones de pago a plazo */
-    gPagPlazo?: gTotTypeGPagPlazoType[];
+    gPagPlazo?: VencimientoPago[];
 	/** Definición de tipo para el grupo:
 	  * D40: Grupo datos cuando a la factura aplican retenciones */
-    gRetenc?: gTotTypeGRetencType;
+    gRetenc?: Retencion;
     /** D12: Tiempo de pago */
     iPzPag: TiempoPago;
 }
@@ -143,74 +150,139 @@ export class Totales implements gTotType {
         maxDecimalPlaces: 2
     })
     dTotISC?: number;
-    
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dTotITBMS: number;
-    
-    
+
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dTotNeto: number;
-    
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dTotRec: number;
-    
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dTotSeg?: number;
-    
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dVTot: number;
-   
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dVTotItems: number;
-    
+
     @IsNumber({
         maxDecimalPlaces: 2
     })
     dVuelto?: number;
-    gDescBonif?: gTotTypeGDescBonifType[];
-    @IsDefined()
+
+    @ArrayMaxSize(5)
+    @ValidateNested()
+    gDescBonif?: Bonificaciones[];
+    
+    @IsDefined()    
+    @ArrayMaxSize(10)
+    @ValidateNested()
     gFormaPago: FormaPagoType[];
-    gOTITotal?: gTotTypeGOTITotalType[];
-    gPagPlazo?: gTotTypeGPagPlazoType[];
-    gRetenc?: gTotTypeGRetencType;
+    
+    @ValidateNested()
+    gOTITotal?: OtrosImpuestosTasas[];
+    
+    @ArrayMaxSize(99)
+    @ValidateNested()
+    gPagPlazo?: VencimientoPago[];
+    
+    @ValidateNested()
+    gRetenc?: Retencion;
+
+    @ValidateNested()
     @IsDefined()
     iPzPag: TiempoPago;
 
     public static toXmlObject?(instance: Totales, parent: XMLBuilder) {
 
-        // let node = parent.ele('gEmis');
-        // node = RucType.toXmlObject(instance.gRucEmi, 'gRucEmi', parent).up();
-        // node = CodigoUbicacionType.toXmlObject(instance.gUbiEm, 'gUbiEm', parent).up();
-        // node.ele('dNombEm').txt(instance.dNombEm).up()
-        //     .ele('dCoordEm').txt(instance.dCoordEm).up()
-        //     .ele('dDirecEm').txt(instance.dDirecEm).up()
-        //     .ele('gUbiEm').ele(instance.gUbiEm).up();
+        let node = parent.ele('gTot');
+        node.ele('iPzPag').txt(instance.iPzPag.toFixed()).up()
+            .ele('dNroItems').txt(instance.dNroItems.toFixed(2)).up()
+            .ele('dTotITBMS').txt(instance.dTotITBMS.toFixed(2)).up()
+            .ele('dTotNeto').txt(instance.dTotNeto.toFixed(2)).up()
+            .ele('dTotRec').txt(instance.dTotRec.toFixed(2)).up()
+            .ele('dTotGravado').txt(instance.dTotGravado.toFixed(2)).up()
+            .ele('dVTot').txt(instance.dVTot.toFixed(2)).up()
+            .ele('dVTotItems').txt(instance.dVTotItems.toFixed(2)).up()
+            .ele('dVuelto').txt(instance.dVuelto.toFixed(2)).up()
 
 
-        // if (instance.dTfnEm) {
-        //     instance.dTfnEm.forEach(i => {
-        //         node = node.ele('dTfnEm').txt(i).up();
-        //     });
-        // }
-        // if (instance.dCorElecEmi) {
-        //     instance.dCorElecEmi.forEach(i => {
-        //         node = node.ele('dCorElecEmi').txt(i).up();
-        //     });
-        // }
-        // return node;
-        return null;
+        if (instance.dTotAcar) {
+            node = node.ele('dTotAcar').txt(instance.dTotAcar.toFixed(2)).up();
+        }
+
+
+        if (instance.dTotDesc) {
+            node = node.ele('dTotDesc').txt(instance.dTotDesc.toFixed(2)).up();
+        }
+
+
+        if (instance.dTotISC) {
+            node = node.ele('dTotISC').txt(instance.dTotISC.toFixed(2)).up();
+        }
+
+
+        if (instance.dTotSeg) {
+            node = node.ele('dTotSeg').txt(instance.dTotSeg.toFixed(2)).up();
+        }
+
+
+        if (instance.gRetenc) {
+            node = node.ele('gRetenc')
+                .ele('cCodRetenc').txt(instance.gRetenc.cCodRetenc.toFixed()).up()
+                .ele('cValRetenc').txt(instance.gRetenc.cValRetenc.toFixed(2)).up()
+        }
+
+
+        if (instance.gPagPlazo) {
+            instance.gPagPlazo.map(i => {
+                node = node.ele('gPagPlazo')
+                    .ele('dFecItPlazo').txt(moment(i.dFecItPlazo).format()).up()
+                    .ele('dSecItem').txt(i.dSecItem.toFixed()).up()
+                    .ele('dValItPlazo').txt(i.dValItPlazo.toFixed(2)).up();
+
+                if (i.dInfPagPlazo) {
+                    node = node.ele('dInfPagPlazo').txt(i.dInfPagPlazo).up();
+                }
+            });
+        }
+
+
+        if (instance.gOTITotal) {
+            instance.gOTITotal.map(i => {
+                node = node.ele('gOTITotal')
+                    .ele('dCodOTITotal').txt(i.dCodOTITotal.toFixed()).up()
+                    .ele('dValOTITotal').txt(i.dValOTITotal.toFixed(2)).up();
+            });
+        }
+
+        if (instance.gDescBonif) {
+            instance.gDescBonif.map(i => {
+                node = node.ele('gDescBonif')
+                    .ele('dDetalDesc').txt(i.dDetalDesc).up()
+                    .ele('dValDesc').txt(i.dValDesc.toFixed(2)).up();
+            });
+        }
+
+        return node;
+
     }
 
 }
