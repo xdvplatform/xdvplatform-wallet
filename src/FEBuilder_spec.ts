@@ -84,7 +84,7 @@ describe("FEBuilder", function () {
       dSeg: '672958054',
       iNatOp: TipoNaturalezaOperacion.Venta,
       iTipoOp: TipoOperacion.Compra,
-      iTipoTranVenta: TipoTransaccionVenta.PrestacionServicio,
+      iTipoTranVenta: TipoTransaccionVenta.Giro,
       gEmis: {
         gRucEmi: {
           dTipoRuc: TipoRuc.Juridico,
@@ -95,7 +95,7 @@ describe("FEBuilder", function () {
         dSucEm: '7632',
         dCoordEm: '+8.9892,-79.5201',
         gUbiEm: {
-          dCodUbi: Ubicaciones['BOCAS DEL TORO-CHANGUINOLA-ALMIRANTE'],
+          dCodUbi: Ubicaciones['BOCAS DEL TORO-BOCAS DEL TORO-BASTIMENTOS'],
         },
         dDirecEm: 'Calle 50',
         dTfnEm: ['66731138'],
@@ -171,7 +171,7 @@ describe("FEBuilder", function () {
       dVuelto: 0,
       iPzPag: TiempoPago.Plazo,
       gFormaPago: [{
-        iFormaPago: FormaPago.ACH,
+        iFormaPago: FormaPago.Otro,
         dVlrCuota: 1
       }]
     };
