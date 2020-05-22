@@ -1,4 +1,4 @@
-import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsNumber, IsDefined } from 'class-validator';
+import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsNumber, IsDefined, IsOptional } from 'class-validator';
 import { RucType } from "./RucType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
@@ -133,12 +133,14 @@ export class Totales implements gTotType {
     @IsNumber({
         maxDecimalPlaces: 2
     })
+    @IsOptional()
     dTotAcar?: number;
 
 
     @IsNumber({
         maxDecimalPlaces: 2
     })
+    @IsOptional()
     dTotDesc?: number;
 
     @IsNumber({
@@ -149,6 +151,7 @@ export class Totales implements gTotType {
     @IsNumber({
         maxDecimalPlaces: 2
     })
+    @IsOptional()
     dTotISC?: number;
 
     @IsNumber({
@@ -170,6 +173,7 @@ export class Totales implements gTotType {
     @IsNumber({
         maxDecimalPlaces: 2
     })
+    @IsOptional()
     dTotSeg?: number;
 
     @IsNumber({
@@ -185,10 +189,12 @@ export class Totales implements gTotType {
     @IsNumber({
         maxDecimalPlaces: 2
     })
+    @IsOptional()
     dVuelto?: number;
 
     @ArrayMaxSize(5)
     @ValidateNested()
+    @IsOptional()
     gDescBonif?: Bonificaciones[];
     
     @IsDefined()    
@@ -197,13 +203,16 @@ export class Totales implements gTotType {
     gFormaPago: FormaPagoType[];
     
     @ValidateNested()
+    @IsOptional()
     gOTITotal?: OtrosImpuestosTasas[];
     
     @ArrayMaxSize(99)
+    @IsOptional()
     @ValidateNested()
     gPagPlazo?: VencimientoPago[];
     
     @ValidateNested()
+    @IsOptional()
     gRetenc?: Retencion;
 
     @ValidateNested()
