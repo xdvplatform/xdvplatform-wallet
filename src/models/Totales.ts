@@ -112,7 +112,7 @@ interface gTotType {
 	  * D30: Grupo de formas de pago de la factura */
     gFormaPago: FormaPagoType[];
     /** D60:Grupo de Total Otras Tasas o Impuestos (OTI) del Item */
-    gOTITotal?: OtrosImpuestosTasas[];
+    gOTITotal?: OtrosImpuestosTasas;
 	/** Definición de tipo para el grupo:
 	  * D50: Grupo de informaciones de pago a plazo */
     gPagPlazo?: VencimientoPago[];
@@ -275,11 +275,11 @@ export class Totales implements gTotType {
 
 
         if (instance.gOTITotal) {
-            instance.gOTITotal.map(i => {
+           // instance.gOTITotal.map(i => {K
                 node = node.ele('gOTITotal')
-                    .ele('dCodOTITotal').txt(i.dCodOTITotal.toFixed()).up()
-                    .ele('dValOTITotal').txt(i.dValOTITotal.toFixed(2)).up();
-            });
+                    .ele('dCodOTITotal').txt(instance.gOTITotal.dCodOTITotal.toFixed()).up()
+                    .ele('dValOTITotal').txt(instance.gOTITotal.dValOTITotal.toFixed(2)).up();
+          //  });
         }
 
         if (instance.gDescBonif) {
