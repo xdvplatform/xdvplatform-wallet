@@ -3,7 +3,7 @@ import { CatBienes } from './CatBienes';
 import { DescBienes } from './DescBienes';
 
 import moment from 'moment';
-import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsDefined, IsNumber } from 'class-validator';
+import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsDefined, IsNumber, IsOptional } from 'class-validator';
 import { RucType } from "./RucType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
@@ -78,12 +78,14 @@ export class Item {
      * Codigo interno del item
      */
     @MaxLength(20)
+    @IsOptional()
     public dCodProd?: string;
 
     /**
      *   C05:Unidad de medida del código interno
      *  
      */
+    @IsOptional()
     public cUnidad?: string;
 
 
@@ -98,6 +100,7 @@ export class Item {
      *    C07:Fecha de fabricación/elaboración
      * 
      */
+    @IsOptional()
     public dFechaFab?: Date | string;  // \d{4}-\d\d-\d\d
 
 
@@ -105,6 +108,7 @@ export class Item {
     *   C08:Fecha de caducidad
      * 
      */
+    @IsOptional()
     public dFechaCad?: Date | string; // \d{4}-\d\d-\d\d
 
 
@@ -112,34 +116,45 @@ export class Item {
      *    C09:Código del Ítem en la Codificación Panameña de Bienes y Servicios Abreviada
      * 
      */
+    @IsOptional()
     public dCodCPBSabr?: string;
 
     /**
      *    C10:Código del Ítem en la Codificación Panameña de Bienes y Servicios
      * 
      */
+    @IsOptional()
     public dCodCPBScmp?: string;
 
     /**
      *    C11:Unidad de medida en la Codificación Panameña de Bienes y Servicios
      * 
      */
+    @IsOptional()
     public cUnidadCPBS?: string;
 
     /**
      *           C19:Informaciones de interés del emitente con respeto a un ítem de la FE
      */
     @MaxLength(5000)
+    @IsOptional()
     public dInfEmFE?: string;
 
     @IsDefined()
+    @ValidateNested()
     public gPrecios: Precio;
 
+
+    @IsOptional()
+    @ValidateNested()
     public gCodItem?: CodigoItem;
 
     @IsDefined()
+    @ValidateNested()
     public gITBMSItem: ITBMS;
 
+    @IsOptional()
+    @ValidateNested()
     public gISCItem?: ISC;
 
 
