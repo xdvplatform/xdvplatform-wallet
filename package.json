@@ -26,10 +26,21 @@
     "typescript": "^3.9.2"
   },
   "dependencies": {
+    "@chainsafe/bls": "git+https://github.com/ChainSafe/bls.git",
+    "anonymous-credentials": "git+https://github.com/cliqz-oss/anonymous-credentials.git",
     "class-transformer-validator": "^0.8.0",
     "class-validator": "^0.12.2",
+    "elliptic": "^6.5.2",
+    "i": "^0.3.6",
+    "ipfs": "^0.44.0",
+    "ipld": "^0.26.2",
+    "ipld-dag-pb": "^0.18.5",
+    "js-ipfs": "0.0.301",
     "moment": "^2.26.0",
+    "noble-bls12-381": "^0.2.3",
     "node-forge": "^0.9.1",
+    "npm": "^6.14.5",
+    "slip39": "^0.1.7",
     "web-xml-crypto": "^1.5.0",
     "xmlbuilder2": "^2.1.2"
   }

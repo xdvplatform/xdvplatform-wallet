@@ -7,6 +7,8 @@ import { CatBienes } from './models/CatBienes';
 import { DescBienes } from './models/DescBienes';
 import { Paises } from './models/Paises';
 import * as forge from 'node-forge'
+import { min } from 'class-validator';
+import { create } from 'xmlbuilder2';
 
 const SignedXml = require('web-xml-crypto').SignedXml
   , fs = require('fs')
@@ -66,9 +68,11 @@ function getSubjectName(certObj) {
 
   return Array.isArray(subjectFields) ? subjectFields.join(',') : '';
 }
-const testMatch =`<rFE xmlns="http://dgi-fep.mef.gob.pa"><dVerForm>1.00</dVerForm><dId>FE01200000000000029-29-29-5676322018101525982740639300126729580548</dId><gDGen><iAmb>2</iAmb><iTpEmis>01</iTpEmis><dFechaSalida>2020-10-09T00:00:00-05:00</dFechaSalida><iTipoTranVenta>4</iTipoTranVenta><iDoc>01</iDoc><dNroDF>2598274063</dNroDF><dPtoFacDF>930</dPtoFacDF><dFechaEm>2020-10-09T00:00:00-05:00</dFechaEm><iNatOp>01</iNatOp><iTipoOp>2</iTipoOp><iDest>1</iDest><iFormCAFE>1</iFormCAFE><iEntCafe>3</iEntCafe><dEnvFe>1</dEnvFe><iProGen>1</iProGen><gEmis/><gRucEmi><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucEmi><gUbiEm><dCodUbi>1-2-2<dProv>1</dProv><dDistr>2</dDistr><dCorreg>2</dCorreg></dCodUbi><dNombEm></dNombEm><dCoordEm>+8.9892,-79.5201</dCoordEm><dDirecEm>Calle 50</dDirecEm><gUbiEm><dCodUbi>1-2-2</dCodUbi></gUbiEm><dTfnEm>66731138</dTfnEm></gUbiEm><gDatRec/><gRucRec><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucRec><gUbiRec><dCodUbi>13-1-3<dProv>13</dProv><dDistr>1</dDistr><dCorreg>3</dCorreg></dCodUbi><iTipoRec>01</iTipoRec><cPaisRec>PA</cPaisRec><dDirecRec>Calle 50</dDirecRec><dTfnRec>66731138</dTfnRec></gUbiRec><gAutXML><gRucAutXML><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucAutXML></gAutXML><gItem><cCantCodInt>1</cCantCodInt><dDescProd>Servicios profesionales Abril Mayo 2020 relacionado a desarrollo web</dDescProd><dSecItem>1</dSecItem><gPrecios><dPrItem>500</dPrItem><dPrUnit>500</dPrUnit><dValTotItem>500</dValTotItem><gITBMSItem><dTasaITBMS>00</dTasaITBMS><dValITBMS>0</dValITBMS><dInfEmFE>No reembolsable</dInfEmFE><cUnidad>Actividad</cUnidad></gITBMSItem><gItem><cCantCodInt>1</cCantCodInt><dDescProd>Investigacion de algoritmo para firmar una factura electronica</dDescProd><dSecItem>2</dSecItem><gPrecios><dPrItem>500</dPrItem><dPrUnit>500</dPrUnit><dValTotItem>500</dValTotItem><gITBMSItem><dTasaITBMS>00</dTasaITBMS><dValITBMS>0</dValITBMS><dInfEmFE>Probablemente posible</dInfEmFE><dCodCPBScmp>4323</dCodCPBScmp><dCodCPBSabr>80</dCodCPBSabr></gITBMSItem><gTot><iPzPag>2</iPzPag><dNroItems>1.00</dNroItems><dTotITBMS>0.00</dTotITBMS><dTotNeto>1000.00</dTotNeto><dTotRec>0.00</dTotRec><dTotGravado>1000.00</dTotGravado><dVTot>1000.00</dVTot><dVTotItems>1.00</dVTotItems><dVuelto>0.00</dVuelto></gTot></gPrecios></gItem></gPrecios></gItem></gDGen></rFE>`
+const testMatch = `<rFE xmlns="http://dgi-fep.mef.gob.pa"><dVerForm>1.00</dVerForm><dId>FE01200000000000029-29-29-5676322018101525982740639300126729580548</dId><gDGen><iAmb>2</iAmb><iTpEmis>01</iTpEmis><dFechaSalida>2020-10-09T00:00:00-05:00</dFechaSalida><iTipoTranVenta>1</iTipoTranVenta><iDoc>01</iDoc><dNroDF>2598274063</dNroDF><dPtoFacDF>930</dPtoFacDF><dFechaEm>2020-10-09T00:00:00-05:00</dFechaEm><iNatOp>01</iNatOp><iTipoOp>2</iTipoOp><iDest>1</iDest><iFormCAFE>1</iFormCAFE><iEntCafe>3</iEntCafe><dEnvFe>1</dEnvFe><iProGen>1</iProGen><gEmis/><gRucEmi><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucEmi><gUbiEm><dCodUbi>1-1-2<dProv>1</dProv><dDistr>1</dDistr><dCorreg>2</dCorreg></dCodUbi><dNombEm></dNombEm><dCoordEm>+8.9892,-79.5201</dCoordEm><dDirecEm>Calle 50</dDirecEm><gUbiEm><dCodUbi>1-1-2</dCodUbi></gUbiEm><dTfnEm>66731138</dTfnEm></gUbiEm><gDatRec/><gRucRec><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucRec><gUbiRec><dCodUbi>13-1-3<dProv>13</dProv><dDistr>1</dDistr><dCorreg>3</dCorreg></dCodUbi><iTipoRec>01</iTipoRec><cPaisRec>PA</cPaisRec><dDirecRec>Calle 50</dDirecRec><dTfnRec>66731138</dTfnRec></gUbiRec><gAutXML><gRucAutXML><dDV>56</dDV><dRuc>29-29-29</dRuc><dTipoRuc>2</dTipoRuc></gRucAutXML></gAutXML><gItem><cCantCodInt>1</cCantCodInt><dDescProd>Servicios profesionales Abril Mayo 2020 relacionado a desarrollo web</dDescProd><dSecItem>1</dSecItem><gPrecios><dPrItem>500</dPrItem><dPrUnit>500</dPrUnit><dValTotItem>500</dValTotItem><gITBMSItem><dTasaITBMS>00</dTasaITBMS><dValITBMS>0</dValITBMS><dInfEmFE>No reembolsable</dInfEmFE><cUnidad>Actividad</cUnidad></gITBMSItem><gItem><cCantCodInt>1</cCantCodInt><dDescProd>Investigacion de algoritmo para firmar una factura electronica</dDescProd><dSecItem>2</dSecItem><gPrecios><dPrItem>500</dPrItem><dPrUnit>500</dPrUnit><dValTotItem>500</dValTotItem><gITBMSItem><dTasaITBMS>00</dTasaITBMS><dValITBMS>0</dValITBMS><dInfEmFE>Probablemente posible</dInfEmFE><dCodCPBScmp>4323</dCodCPBScmp><dCodCPBSabr>80</dCodCPBSabr></gITBMSItem><gTot><iPzPag>2</iPzPag><dNroItems>1.00</dNroItems><dTotITBMS>0.00</dTotITBMS><dTotNeto>1000.00</dTotNeto><dTotRec>0.00</dTotRec><dTotGravado>1000.00</dTotGravado><dVTot>1000.00</dVTot><dVTotItems>1.00</dVTotItems><dVuelto>0.00</dVuelto></gTot></gPrecios></gItem></gPrecios></gItem></gDGen></rFE>`
 describe("FEBuilder", function () {
   let latestFEDocument;
+  let feDoocument;
+  let feSigned;
   beforeEach(function () {
   });
 
@@ -123,8 +127,8 @@ describe("FEBuilder", function () {
         },
       }]
     };
-    
-    
+
+
     const gItem: Item[] = [
       {
         dSecItem: 1,
@@ -144,7 +148,7 @@ describe("FEBuilder", function () {
       }, {
         dSecItem: 2,
         dDescProd: 'Investigacion de algoritmo para firmar una factura electronica',
-        cCantCodInt:1,
+        cCantCodInt: 1,
         dCodCPBSabr: CatBienes['Servicios de Gestión, Servicios Profesionales de Empresa y Servicios Administrativos'],
         dCodCPBScmp: DescBienes.Software,
         dInfEmFE: 'Probablemente posible',
@@ -189,6 +193,7 @@ describe("FEBuilder", function () {
 
     const res = await rfe.toXml();
     latestFEDocument = res;
+    feDoocument = rfe;
     expect(res).equal(testMatch);
   });
 
@@ -204,7 +209,86 @@ describe("FEBuilder", function () {
     sig.computeSignature(latestFEDocument)
     console.log(sig)
     const output = sig.signedXml;
+    feSigned = create(output).end({ format: 'object' });
     console.log(output);
   });
 
+
+  it('should be able to store FE in IPLD', async function () {
+    const IPFS = require('ipfs');
+    const { DAGNode } = require('ipld-dag-pb');
+
+    function createNode(options) {
+      options = options || {}
+      options.path = options.path || '/tmp/ipfs' + Math.random()
+      return IPFS.create({
+        repo: options.path,
+        config: {
+          Addresses: {
+            Swarm: [
+              '/ip4/0.0.0.0/tcp/0'
+            ],
+            API: '/ip4/127.0.0.1/tcp/0',
+            Gateway: '/ip4/127.0.0.1/tcp/0'
+          },
+          "AutoNAT": {},
+          "Bootstrap": [
+            "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
+            "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
+            "/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
+            "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
+            "/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ"
+          ],
+        }
+      })
+    }
+    const ipfs = await createNode();
+    
+    // Two Parties - Use Elliptic for ephemeral EdDSA key generation
+    // Alice: 
+    // - Encrypt with Bob's public key
+    // - Sign payload with Alice's private key
+
+    // Bob:
+    // - Decrypt with Bob's private key
+    // - Verify with Alice's public key
+
+    // Later: Multi Party Verification - Use noble-bls12-381 / anonymous-credentials
+
+      console.log('\nStart of the example:')
+
+      const myData = {
+        did: '0x',
+        signature: '',
+        timestamp: new Date().toISOString(),
+        invoiceContainer: {
+          encrypted: '',
+          metadata: {
+            id: feDoocument._rFE.dId,
+            from: feDoocument._rFE.gDGen.gEmis.gRucEmi,
+            to: feDoocument._rFE.gDGen.gDatRec.gRucRec
+          },
+          detachedDocumentSignature: feSigned.rFE.Signature,
+        },
+      }
+      const someData = Buffer.from(JSON.stringify(latestFEDocument))
+      const pbNode = new DAGNode(someData)
+    
+      const pbNodeCid = await ipfs.dag.put(pbNode, {
+        format: 'dag-pb',
+        hashAlg: 'sha2-256'
+      })
+
+      // myData.invoice = pbNodeCid;
+
+
+      const cid = await ipfs.dag.put(myData, { format: 'dag-cbor', hashAlg: 'sha2-256' })
+      const result = await ipfs.dag.get(cid, 'invoiceContainer')
+      for await (const path of ipfs.dag.tree(cid, { recursive: true })) {
+        console.log(path)
+      }
+    
+
+      console.log(JSON.stringify(result))
+  });
 });
