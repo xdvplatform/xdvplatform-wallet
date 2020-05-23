@@ -1,6 +1,6 @@
 {
   "name": "@xdvplatform/fe-builder",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
@@ -31,7 +31,6 @@
     "class-transformer-validator": "^0.8.0",
     "class-validator": "^0.12.2",
     "elliptic": "^6.5.2",
-    "i": "^0.3.6",
     "ipfs": "^0.44.0",
     "ipld": "^0.26.2",
     "ipld-dag-pb": "^0.18.5",
