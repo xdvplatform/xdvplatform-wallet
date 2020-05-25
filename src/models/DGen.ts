@@ -2,7 +2,7 @@ import moment from 'moment';
 import {
     IsPositive, Min, IsEthereumAddress, MinLength,
     MaxLength, validateOrReject, arrayMinSize,
-    ArrayMinSize, ArrayMaxSize, Matches, IsInt, IsIn, IsEnum, IsDate, IsString, ValidateNested
+    ArrayMinSize, ArrayMaxSize, Matches, IsInt, IsIn, IsEnum, IsDate, IsString, ValidateNested, IsOptional
 } from 'class-validator';
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
 import { Receptor } from './Receptor';
@@ -135,6 +135,7 @@ export class DGen {
      *             ID: B04 Fecha y hora de inicio de la operación en contingencia
      */
     @IsDate()
+    @IsOptional()
     public dFechaCont?: Date;
 
     /**
@@ -178,6 +179,7 @@ export class DGen {
      *             B11: Fecha de salida de las mercancías. Informar cuando sea conocida
      */
     @IsDate()
+    @IsOptional()
     public dFechaSalida?: Date;
 
     /**
@@ -230,18 +232,21 @@ export class DGen {
      *             B19: Tipo de transacción de venta
      */
     @IsEnum(TipoTransaccionVenta)
+    @IsOptional()
     public iTipoTranVenta?: TipoTransaccionVenta;
 
 
     /**
      *             B20: Tipo de Sucursal
      */
+    @IsOptional()
     @IsEnum(TipoSucursal)
     public iTipoSuc?: TipoSucursal;
 
     /**
      *             B29: Informaciones de interés del emitente con respecto a la FE
      */
+    @IsOptional()
     @MaxLength(5000)
     public dIntEmFe?: string;
 
@@ -264,6 +269,7 @@ export class DGen {
 
     // Grupo de datos que identifican al autorizado a descargar
     @ArrayMaxSize(10)
+    @IsOptional()
     public gAutXML?: AutorizadoDescargar[];
 
     public static toXmlObject(instance: DGen, parent: XMLBuilder) {

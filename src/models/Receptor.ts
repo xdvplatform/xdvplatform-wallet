@@ -1,4 +1,4 @@
-import { MinLength, MaxLength, ArrayMaxSize, Matches, IsEnum, ValidateNested } from 'class-validator';
+import { MinLength, MaxLength, ArrayMaxSize, Matches, IsEnum, ValidateNested, IsOptional } from 'class-validator';
 import { TipoReceptor, RucRecType } from './DGen';
 import { IdExtType } from "./IdExtType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
@@ -19,21 +19,25 @@ export class Receptor {
      *             B403: Razón social (persona jurídica) o Nombre y Apellido (persona natural) del receptor de la FE
      */
     @MaxLength(100)
+    @IsOptional()
     public dNombRec?: string;
     /**
      *             B404: Dirección del receptor de la FE
      */
     @MaxLength(100)
+    @IsOptional()
     public dDirecRec?: string;
     /**
      *             B405: Codigo, Corregimiento, Distrito, Provincia donde se ubica el punto de facturación
      */
 
     @ValidateNested()
+    @IsOptional()
     public gUbiRec?: CodigoUbicacionType;
     /**
      *             B406: Identificación de extranjeros
      */
+    @IsOptional()
     public gIdExtType?: IdExtType;
     /**
      *             B408: Teléfono de contacto del receptor de la FE
@@ -44,6 +48,7 @@ export class Receptor {
     /**
      *             B409: Correo electrónico del receptor
      */
+    @IsOptional()
     @ArrayMaxSize(3)
     @Matches(`([0-9a-zA-Z#$%]([-.\w]*[0-9a-zA-Z#$%'\\.\\-_])*@([0-9a-zA-Z][-\w]*[0-9a-zA-Z]\.)+[a-zA-Z]{2,9})`)
     public dCorElecRec?: string[];
@@ -56,6 +61,7 @@ export class Receptor {
      */
     @MaxLength(50)
     @MinLength(5)
+    @IsOptional()
     public cPaisRecDesc?: string;
 
 
