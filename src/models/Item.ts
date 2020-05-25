@@ -3,7 +3,7 @@ import { CatBienes } from './CatBienes';
 import { DescBienes } from './DescBienes';
 
 import moment from 'moment';
-import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsDefined, IsNumber, IsOptional } from 'class-validator';
+import { MaxLength, ArrayMaxSize, Matches, ValidateNested, ArrayMinSize, IsDefined, IsNumber, IsOptional, IsEnum, IsIn } from 'class-validator';
 import { RucType } from "./RucType";
 import { CodigoUbicacionType } from "./CodigoUbicacionType";
 import { XMLBuilder } from 'xmlbuilder2/lib/interfaces';
@@ -41,26 +41,48 @@ export enum TasaITBMS {
 export class ITBMS {
     public dTasaITBMS: TasaITBMS;
 
+    @IsNumber()
     public dValITBMS: number;
 }
 export class CodigoItem {
+    @IsNumber()
     dGTINCom: number;
+    
+    @IsNumber()
     dCantGTINCom: number;
+    
+    @IsNumber()
     dGTINInv: number;
+    
+    @IsNumber()
     dCantComInvent: number;
 }
 
 export class Precio {
+    @IsNumber()
     dPrUnit: number;
+    
+    @IsNumber()
+    @IsOptional()
     dPrUnitDesc?: number;
+    
+    @IsNumber()
     dPrItem: number;
+    
+    @IsNumber()
+    @IsOptional()
     dPrAcarItem?: number;
+    
+    @IsNumber()
+    @IsOptional()
     dPrSegItem?: number;
+    @IsNumber()
     dValTotItem: number;
 }
 export class ISC {
     public dTasaISC: TasaISC;
 
+    @IsNumber()
     public dValISC: number;
 }
 export class Item {
