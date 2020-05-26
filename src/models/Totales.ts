@@ -124,7 +124,11 @@ interface gTotType {
 }
 
 export class Totales implements gTotType {
-
+    constructor() {
+        this.gDescBonif = [];
+        this.gPagPlazo = [];
+        this.gFormaPago = [];
+    }
     @IsNumber({
         maxDecimalPlaces: 2
     })

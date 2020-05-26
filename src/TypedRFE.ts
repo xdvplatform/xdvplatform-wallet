@@ -1,6 +1,11 @@
 import { DGen, Item, Totales } from './models';
 import { MinLength, IsDefined, Matches, ValidateNested, IsNumber, ArrayMaxSize } from 'class-validator';
 export class TypedRFE {
+  constructor() {
+    this.gDGen = new DGen();
+    this.gItem = [];
+    this.gTot = new Totales();
+  }
   @IsNumber()
   public dVerForm: number;
   @Matches(/[F][E](([A|V|T|E|P|N|I]|[-]|[a-zA-Z0-9]){64})?/)

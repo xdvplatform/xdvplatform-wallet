@@ -86,6 +86,12 @@ export class ISC {
     public dValISC: number;
 }
 export class Item {
+    constructor() {
+        this.gCodItem = null;
+        this.gISCItem = null;
+        this.gITBMSItem = new ITBMS();
+        this.gPrecios = new Precio();
+    }
     @MaxLength(4)
     public dSecItem: number;
 

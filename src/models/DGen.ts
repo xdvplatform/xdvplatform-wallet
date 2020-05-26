@@ -119,6 +119,14 @@ export class PhoneType {
 
 export class DGen {
 
+    constructor() {
+        this.gDatRec = new Receptor();
+        this.gEmis = new Emisor();
+        this.gAutXML = null;
+        this.dFechaCont = null;
+        this.dFechaSalida = null;
+    }
+
     /**
      * Ambientes de destino de la FE
      */
