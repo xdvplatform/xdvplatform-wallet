@@ -215,35 +215,7 @@ describe("FEBuilder", function () {
 
 
   it('should be able to store FE in IPLD', async function () {
-    const IPFS = require('ipfs');
-    const { DAGNode } = require('ipld-dag-pb');
-
-    function createNode(options) {
-      options = options || {}
-      options.path = options.path || '/tmp/ipfs' + Math.random()
-      return IPFS.create({
-        repo: options.path,
-        config: {
-          Addresses: {
-            Swarm: [
-              '/ip4/0.0.0.0/tcp/0'
-            ],
-            API: '/ip4/127.0.0.1/tcp/0',
-            Gateway: '/ip4/127.0.0.1/tcp/0'
-          },
-          "AutoNAT": {},
-          "Bootstrap": [
-            "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
-            "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
-            "/dnsaddr/bootstrap.libp2p.io/p2p/QmbLHAnMoJPWSCR5Zhtx6BHJX9KiKNN6tpvbUcqanj75Nb",
-            "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
-            "/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ"
-          ],
-        }
-      })
-    }
-    const ipfs = await createNode();
-    
+    const ipld = require('./ipld/IpldClient');
     // Two Parties - Use Elliptic for ephemeral EdDSA key generation
     // Alice: 
     // - Encrypt with Bob's public key
@@ -255,40 +227,39 @@ describe("FEBuilder", function () {
 
     // Later: Multi Party Verification - Use noble-bls12-381 / anonymous-credentials
 
-      console.log('\nStart of the example:')
 
-      const myData = {
-        did: '0x',
-        signature: '',
-        timestamp: new Date().toISOString(),
-        invoiceContainer: {
-          encrypted: '',
-          metadata: {
-            id: feDoocument._rFE.dId,
-            from: feDoocument._rFE.gDGen.gEmis.gRucEmi,
-            to: feDoocument._rFE.gDGen.gDatRec.gRucRec
+    const client = new ipld.IpldClient();
+    await client.initialize();
+    const documents = {
+      did: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+      documents: {
+        invoices: {
+          templates: {
           },
-          detachedDocumentSignature: feSigned.rFE.Signature,
+          signed: {
+          },
+          sent: {
+          },
+          unsigned: {
+          }
         },
       }
-      const someData = Buffer.from(JSON.stringify(latestFEDocument))
-      const pbNode = new DAGNode(someData)
-    
-      const pbNodeCid = await ipfs.dag.put(pbNode, {
-        format: 'dag-pb',
-        hashAlg: 'sha2-256'
-      })
+      // timestamp: new Date().toISOString(),
+      // invoiceContainer: {
+      //   encrypted: '',
+      //   metadata: {
+      //     id: feDoocument._rFE.dId,
+      //     from: feDoocument._rFE.gDGen.gEmis.gRucEmi,
+      //     to: feDoocument._rFE.gDGen.gDatRec.gRucRec
+      //   },
+      //   detachedDocumentSignature: feSigned.rFE.Signature,
+      // },
+    }
 
-      // myData.invoice = pbNodeCid;
+    const
+      cid = await client.createNode(documents);
 
-
-      const cid = await ipfs.dag.put(myData, { format: 'dag-cbor', hashAlg: 'sha2-256' })
-      const result = await ipfs.dag.get(cid, 'invoiceContainer')
-      for await (const path of ipfs.dag.tree(cid, { recursive: true })) {
-        console.log(path)
-      }
-    
-
-      console.log(JSON.stringify(result))
+    const tree = await client.listTree(cid);
+    console.log(tree)
   });
 });

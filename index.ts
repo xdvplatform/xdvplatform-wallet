@@ -5,3 +5,4 @@ export * from './src/Totales';
 export * from './src/ItemSchema';
 export * from './src/TypedRFESchema';
 export * from './src/TypedRFE';
+export * from './src/ipld/IpldClient';
