@@ -1,8 +1,7 @@
 import { Wallet } from './Wallet';
 import { expect } from 'chai';
+import  { JWTSigner } from './JWTSigner';
 
-const SignedXml = require('web-xml-crypto').SignedXml
-  , fs = require('fs')
 describe("#wallet", function () {
   let selectedWallet;
   beforeEach(function () {
@@ -75,7 +74,7 @@ describe("#wallet", function () {
 
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
-      const pem = await wallet.getPrivateKeyAsPEM();
+      const pem = await wallet.getES256KAsPEM();
       expect(!!pem).equal(true);
     }
     catch (e) {
@@ -93,11 +92,69 @@ describe("#wallet", function () {
 
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
-      const der = await wallet.getPrivateKeyAsDER();
+      const der = await wallet.getES256KAsDER();
       expect(!!der).equal(true);
     }
     catch (e) {
       throw e;
     }
   });
+
+
+  it("when signing with ES256K, should return a signed JWT", async function () {
+
+    const mnemonic = Wallet.generateMnemonic();
+    const opts = { mnemonic, password: '123password' };
+    const keystore = await Wallet.createHDWallet(opts);
+    expect(JSON.parse(keystore).version).equal(3);
+
+    try {
+      const wallet = await Wallet.unlock(keystore, opts.password);
+
+      const signer = new JWTSigner(wallet);
+      const jwt = signer.signES256K({
+        testing: 'testing'
+      }, {
+        iat: (new Date(2020, 10, 10)).getTime(),
+        iss: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+        sub: 'document',
+        aud: 'receptor',
+        nbf: (new Date(2020, 10, 10)).getTime(),
+      });
+
+      expect(!!jwt).equal(true)
+    }
+    catch (e) {
+      throw e;
+    }
+  });
+
+  it("when signing with ES256K DID, should return a signed JWT", async function () {
+
+    const mnemonic = Wallet.generateMnemonic();
+    const opts = { mnemonic, password: '123password' };
+    const keystore = await Wallet.createHDWallet(opts);
+    expect(JSON.parse(keystore).version).equal(3);
+
+    try {
+      const wallet = await Wallet.unlock(keystore, opts.password);
+
+      const signer = new JWTSigner(wallet);
+      const jwt = await signer.signES256KAsDID('0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        testing: 'testing'
+      }, {
+        iat: (new Date(2020, 10, 10)).getTime(),
+        iss: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+        sub: 'document',
+        aud: 'receptor',
+        nbf: (new Date(2020, 10, 10)).getTime(),
+      });
+
+      expect(!!jwt).equal(true)
+    }
+    catch (e) {
+      throw e;
+    }
+  });
+
 });

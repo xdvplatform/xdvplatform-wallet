@@ -69,21 +69,29 @@ export class Wallet {
 
     public getEd25519() {
         const ed25519 = new eddsa('ed25519');
-        const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
+       // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
         const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.ethersWallet.mnemonic));
-        const keypair = ed25519.keyFromSecret(key as Buffer);
+        const keypair = ed25519.keyFromSecret(key);
         return keypair;
     }
 
     public getP256() {
+        const { HDKey } = require('hdkey-secp256r1');
         const p256 = new ec('p256');
-        const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
-        const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.ethersWallet.mnemonic));
-        const keypair = p256.keyFromPrivate(key as Buffer);
+       // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
+        const key = HDKey.fromMasterSeed(Buffer.from(HDNode.mnemonicToSeed(this.ethersWallet.mnemonic), 'hex'))
+        const keypair = p256.keyFromPrivate(key.privateKey);
         return keypair;
     }
 
-    public getPrivateKeyAsDER() {
+    public getES256K() {
+        const ES256k = new ec('secp256k1');
+        const key = HDKey.fromMasterSeed(Buffer.from(HDNode.mnemonicToSeed(this.ethersWallet.mnemonic), 'hex'))
+        const keypair = ES256k.keyFromPrivate(key.privateKey);
+        return keypair;
+    }
+
+    public getES256KAsDER() {
         const encoderOptions = {
             curveParameters: [1, 3, 132, 0, 10],
             privatePEMOptions: { label: 'EC PRIVATE KEY' },
@@ -96,7 +104,7 @@ export class Wallet {
     }
 
 
-    public getPrivateKeyAsPEM() {
+    public getES256KAsPEM() {
         const encoderOptions = {
             curveParameters: [1, 3, 132, 0, 10],
             privatePEMOptions: { label: 'EC PRIVATE KEY' },
@@ -106,5 +114,28 @@ export class Wallet {
         const keyEncoder = new KeyEncoder(encoderOptions);
 
         return keyEncoder.encodePrivate(this.ethersWallet.privateKey, 'raw', 'pem');
+    }
+
+    public getP256AsJWK() {
+        const kp = this.getP256();
+        return {
+            kty: "EC",
+            crv: "P-256",
+            x: kp.getPublic().getX(),
+            y: kp.getPublic().getY(),
+            d: kp.getPrivate().toBuffer().toString('base64')
+        };
+    }
+
+    public getES256KAsJWK() {
+        const es256k = new ec('secp256k1');
+        const kp = es256k.keyFromPrivate(this.ethersWallet.privateKey);
+        return {
+            kty: "EC",
+            crv: "ES256k",
+            x: kp.getPublic().getX(),
+            y: kp.getPublic().getY(),
+            d: kp.getPrivate().toBuffer().toString('base64')
+        };
     }
 }
