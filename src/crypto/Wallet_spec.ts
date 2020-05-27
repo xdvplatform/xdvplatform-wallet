@@ -49,6 +49,23 @@ describe("#wallet", function () {
     }
   });
 
+  it("when given a seed and creating P256 keys, should return P256 keypair", async function () {
+
+    const mnemonic = Wallet.generateMnemonic();
+    const opts = { mnemonic, password: '123password' };
+    const keystore = await Wallet.createHDWallet(opts);
+    expect(JSON.parse(keystore).version).equal(3);
+
+    try {
+      const wallet = await Wallet.unlock(keystore, opts.password);
+      const kp = await wallet.getP256();
+      expect(!!kp).equal(true);
+    }
+    catch (e) {
+      throw e;
+    }
+  });
+
   it("when given a seed, should return a PEM", async function () {
 
     const mnemonic = Wallet.generateMnemonic();

@@ -75,6 +75,14 @@ export class Wallet {
         return keypair;
     }
 
+    public getP256() {
+        const p256 = new ec('p256');
+        const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
+        const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.ethersWallet.mnemonic));
+        const keypair = p256.keyFromPrivate(key as Buffer);
+        return keypair;
+    }
+
     public getPrivateKeyAsDER() {
         const encoderOptions = {
             curveParameters: [1, 3, 132, 0, 10],
