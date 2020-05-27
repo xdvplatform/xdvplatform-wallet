@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "test": "ts-mocha -p tsconfig.json src/**/*_spec.ts",
+    "test": "ts-mocha --timeout 50000 -p tsconfig.json src/**/*_spec.ts",
     "start": "ts-node --files ./src/index.ts",
     "build": "tsc",
     "watch": "tsnd --respawn index.ts --watch ./src"
@@ -27,19 +27,27 @@
   },
   "dependencies": {
     "@chainsafe/bls": "git+https://github.com/ChainSafe/bls.git",
+    "@types/elliptic": "^6.4.12",
     "anonymous-credentials": "git+https://github.com/cliqz-oss/anonymous-credentials.git",
     "class-transformer-validator": "^0.8.0",
     "class-validator": "^0.12.2",
+    "ed25519-hd-key": "^1.1.2",
     "elliptic": "^6.5.2",
+    "ethereum-cryptography": "^0.1.2",
+    "ethers": "^4.0.47",
     "ipfs": "^0.44.0",
     "ipld": "^0.26.2",
     "ipld-dag-pb": "^0.18.5",
+    "jose": "^1.27.0",
     "js-ipfs": "0.0.301",
+    "jsrsasign": "^8.0.15",
+    "key-encoder": "^2.0.3",
     "moment": "^2.26.0",
     "noble-bls12-381": "^0.2.3",
     "node-forge": "^0.9.1",
     "npm": "^6.14.5",
     "slip39": "^0.1.7",
+    "tenderkeys": "0.0.3",
     "web-xml-crypto": "^1.5.0",
     "xmlbuilder2": "^2.1.2"
   }
