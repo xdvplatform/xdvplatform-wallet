@@ -6,6 +6,14 @@ import { HDNode } from 'ethers/utils';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
 import { HDKeyT } from 'ethereum-cryptography/pure/hdkey';
 import { IsString, IsDefined, IsOptional } from 'class-validator';
+import { JWK } from 'jose';
+import {
+    generateRandomSecretKey,
+    deriveKeyFromMnemonic,
+    deriveKeyFromEntropy,
+    deriveKeyFromMaster,
+    deriveEth2ValidatorKeys,
+} from "@chainsafe/bls-keygen";
 
 export class WalletOptions {
     @IsString()
@@ -52,7 +60,7 @@ export class Wallet {
      * @param keystore A JSON keystore
      * @param password password to decrypt
      */
-    public static async unlock(keystore: string, password: string) {
+    public static async unlock(keystore: string, password: string): Wallet {
         const ethersWallet = await ethers.Wallet.fromEncryptedJson(keystore, password);
         return new Wallet(ethersWallet);
     }
@@ -60,14 +68,32 @@ export class Wallet {
     /**
      * Derives a new child Wallet
      */
-    public deriveChild() {
-        const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
-        const childHD = hdkey.deriveChild(1);
-        const ethersWallet = new ethers.Wallet(childHD.privateKey);
+    public deriveChild(sequence: number, derivation = `m/44'/60'/0'/0`): Wallet {
+        const masterKey = HDNode.fromMnemonic(this.ethersWallet.mnemonic);
+        const hdnode = masterKey.derivePath(`${derivation}/${sequence}`);
+        console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
+        const ethersWallet = new ethers.Wallet(hdnode);
         return new Wallet(ethersWallet);
     }
 
-    public getEd25519() {
+    public get path() {
+        return this.ethersWallet.path;
+    }
+
+    public get address() {
+        return this.ethersWallet.getAddress();
+    }
+
+    /**
+     * Derives a wallet from a path
+     */
+    public deriveFromPath(path: string): Wallet {
+        const node = HDNode.fromMnemonic(this.ethersWallet.mnemonic).derivePath(path);
+        const ethersWallet = new ethers.Wallet(node);
+        return new Wallet(ethersWallet);
+    }
+
+    public getEd25519(): eddsa.KeyPair {
         const ed25519 = new eddsa('ed25519');
        // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
         const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.ethersWallet.mnemonic));
@@ -75,7 +101,7 @@ export class Wallet {
         return keypair;
     }
 
-    public getP256() {
+    public getP256(): ec.KeyPair {
         const { HDKey } = require('hdkey-secp256r1');
         const p256 = new ec('p256');
        // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.ethersWallet.mnemonic).extendedKey);
@@ -84,58 +110,24 @@ export class Wallet {
         return keypair;
     }
 
-    public getES256K() {
+    public getES256K(): ec.KeyPair {
         const ES256k = new ec('secp256k1');
         const key = HDKey.fromMasterSeed(Buffer.from(HDNode.mnemonicToSeed(this.ethersWallet.mnemonic), 'hex'))
         const keypair = ES256k.keyFromPrivate(key.privateKey);
         return keypair;
     }
-
-    public getES256KAsDER() {
-        const encoderOptions = {
-            curveParameters: [1, 3, 132, 0, 10],
-            privatePEMOptions: { label: 'EC PRIVATE KEY' },
-            publicPEMOptions: { label: 'PUBLIC KEY' },
-            curve: new ec('secp256k1')
-        }
-        const keyEncoder = new KeyEncoder(encoderOptions);
-
-        return keyEncoder.encodePrivate(this.ethersWallet.privateKey, 'raw', 'der');
-    }
-
-
-    public getES256KAsPEM() {
-        const encoderOptions = {
-            curveParameters: [1, 3, 132, 0, 10],
-            privatePEMOptions: { label: 'EC PRIVATE KEY' },
-            publicPEMOptions: { label: 'PUBLIC KEY' },
-            curve: new ec('secp256k1')
-        }
-        const keyEncoder = new KeyEncoder(encoderOptions);
-
-        return keyEncoder.encodePrivate(this.ethersWallet.privateKey, 'raw', 'pem');
-    }
-
-    public getP256AsJWK() {
-        const kp = this.getP256();
+    
+    public getBlsMasterKey(): any {
+        const masterKey = deriveKeyFromMnemonic(this.ethersWallet.mnemonic)
         return {
-            kty: "EC",
-            crv: "P-256",
-            x: kp.getPublic().getX(),
-            y: kp.getPublic().getY(),
-            d: kp.getPrivate().toBuffer().toString('base64')
+            deriveValidatorKeys: (id: number) => deriveEth2ValidatorKeys(masterKey, id)
         };
     }
 
-    public getES256KAsJWK() {
-        const es256k = new ec('secp256k1');
-        const kp = es256k.keyFromPrivate(this.ethersWallet.privateKey);
-        return {
-            kty: "EC",
-            crv: "ES256k",
-            x: kp.getPublic().getX(),
-            y: kp.getPublic().getY(),
-            d: kp.getPrivate().toBuffer().toString('base64')
-        };
+
+    public getRSA2048Standalone(): Promise<JWK.RSAKey> {
+        return JWK.generate("RSA");
     }
+
+    
 }

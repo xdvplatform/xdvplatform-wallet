@@ -1,5 +1,6 @@
 import { DGen, Item, Totales } from './models';
 export declare class TypedRFE {
+    constructor();
     dVerForm: number;
     dId: string;
     gDGen: DGen;

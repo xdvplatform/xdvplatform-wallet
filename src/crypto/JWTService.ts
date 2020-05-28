@@ -2,19 +2,25 @@ import { Wallet } from './Wallet';
 import { JWTPayload } from './JWTPayload';
 import { JWT, JWK } from 'jose';
 import { decodeJWT, createJWT, createJWS, verifyJWS, verifyJWT, SimpleSigner } from 'did-jwt';
-import { eddsa } from 'elliptic';
+import { eddsa, ec } from 'elliptic';
 import { ethers } from 'ethers';
 export class JWTService {
-    constructor(private wallet: Wallet) {
+    constructor() {
 
     }
 
-    public signEd25519AsDID(issuer: string, payload: any, options: JWTPayload) {
+    /**
+     * Signs a did-jwt payload using EdDSA / Ed25519
+     * @param key Ed25519 key
+     * @param issuer DID issuer
+     * @param payload JSON payload
+     * @param options JWT payload config
+     */
+    public static signEd25519AsDID(key: eddsa.KeyPair, issuer: string, payload: any, options: JWTPayload) {
         const signer = async (payload: string | Buffer) => {
-            const key = this.wallet.getEd25519();
             const signature = key.sign(payload).toHex();
-            
-            const sigR  = signature.slice(0, 64);
+
+            const sigR = signature.slice(0, 64);
             const sigS = signature.slice(64);
 
             const ok = key.verify(payload, signature);
@@ -29,13 +35,22 @@ export class JWTService {
             ...options
         }, {
             alg: 'Ed25519',
+            // @ts-ignore
             signer,
             issuer,
         });
     }
 
-    public signES256KAsDID(issuer: string, payload: any, options: JWTPayload) {
-        const signer = SimpleSigner(this.wallet.getES256K().getPrivate().toString());
+
+    /**
+     * Signs a did-jwt payload using ECDSA / sepc25k1
+     * @param key secp256k1 key
+     * @param issuer DID issuer
+     * @param payload JSON payload
+     * @param options JWT payload config
+     */
+    public static signES256KAsDID(key: ec.KeyPair, issuer: string, payload: any, options: JWTPayload) {
+        const signer = SimpleSigner(key.getPrivate().toString());
         return createJWT({
             ...payload,
             ...options
@@ -46,8 +61,16 @@ export class JWTService {
         });
     }
 
-    public signES256KRAsDID(issuer: string, payload: any, options: JWTPayload) {
-        const signer = SimpleSigner(this.wallet.getP256().getPrivate().toString());
+
+    /**
+     * Signs a did-jwt payload using ECDSA / P256 - ES256K-R
+     * @param key ES256K-R key
+     * @param issuer DID issuer
+     * @param payload JSON payload
+     * @param options JWT payload config
+     */
+    public static signES256KRAsDID(key: ec.KeyPair, issuer: string, payload: any, options: JWTPayload) {
+        const signer = SimpleSigner(key.getPrivate().toString());
         return createJWT({
             ...payload,
             ...options
@@ -58,8 +81,18 @@ export class JWTService {
         });
     }
 
-    public signES256K(payload: any, options: JWTPayload) {
-        const key = JWK.asKey(this.wallet.getES256KAsPEM())
+    public static async didVerify(signature: string, options: any) {
+        const v = await verifyJWT(signature, options);
+        return { ...v };
+    }
+    /**
+     * Signs a payload using ECDSA / secp256k1
+     * @param key secp256k1 key
+     * @param payload JSON payload
+     * @param options JWT payload config
+     */
+    public static signES256K(pem: string, payload: any, options: JWTPayload) {
+        const key = JWK.asKey(pem)
         return JWT.sign(payload, key, {
             audience: options.aud,
             issuer: options.iss,
@@ -68,4 +101,6 @@ export class JWTService {
             subject: options.sub,
         });
     }
+
+
 }

@@ -97,7 +97,7 @@ interface gTotType {
       * D30: Grupo de formas de pago de la factura */
     gFormaPago: FormaPagoType[];
     /** D60:Grupo de Total Otras Tasas o Impuestos (OTI) del Item */
-    gOTITotal?: OtrosImpuestosTasas[];
+    gOTITotal?: OtrosImpuestosTasas;
     /** Definición de tipo para el grupo:
       * D50: Grupo de informaciones de pago a plazo */
     gPagPlazo?: VencimientoPago[];
@@ -108,6 +108,7 @@ interface gTotType {
     iPzPag: TiempoPago;
 }
 export declare class Totales implements gTotType {
+    constructor();
     dNroItems: number;
     dTotAcar?: number;
     dTotDesc?: number;
@@ -122,7 +123,7 @@ export declare class Totales implements gTotType {
     dVuelto?: number;
     gDescBonif?: Bonificaciones[];
     gFormaPago: FormaPagoType[];
-    gOTITotal?: OtrosImpuestosTasas[];
+    gOTITotal: OtrosImpuestosTasas;
     gPagPlazo?: VencimientoPago[];
     gRetenc?: Retencion;
     iPzPag: TiempoPago;

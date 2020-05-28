@@ -50,6 +50,7 @@ export declare class ISC {
     dValISC: number;
 }
 export declare class Item {
+    constructor();
     dSecItem: number;
     /**
      *    C03:Descripción del producto o servicio

@@ -92,6 +92,7 @@ export declare class PhoneType {
     value: string;
 }
 export declare class DGen {
+    constructor();
     /**
      * Ambientes de destino de la FE
      */
