@@ -2,9 +2,36 @@ import { Wallet } from './Wallet';
 import { JWTPayload } from './JWTPayload';
 import { JWT, JWK } from 'jose';
 import { decodeJWT, createJWT, createJWS, verifyJWS, verifyJWT, SimpleSigner } from 'did-jwt';
-export class JWTSigner {
+import { eddsa } from 'elliptic';
+import { ethers } from 'ethers';
+export class JWTService {
     constructor(private wallet: Wallet) {
 
+    }
+
+    public signEd25519AsDID(issuer: string, payload: any, options: JWTPayload) {
+        const signer = async (payload: string | Buffer) => {
+            const key = this.wallet.getEd25519();
+            const signature = key.sign(payload).toHex();
+            
+            const sigR  = signature.slice(0, 64);
+            const sigS = signature.slice(64);
+
+            const ok = key.verify(payload, signature);
+            if (ok) {
+                return { R: sigR, S: sigS };
+            } else {
+                throw new Error('Invalid Ed25519 key');
+            }
+        }
+        return createJWT({
+            ...payload,
+            ...options
+        }, {
+            alg: 'Ed25519',
+            signer,
+            issuer,
+        });
     }
 
     public signES256KAsDID(issuer: string, payload: any, options: JWTPayload) {

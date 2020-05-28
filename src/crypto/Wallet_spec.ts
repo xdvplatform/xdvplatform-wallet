@@ -1,6 +1,6 @@
 import { Wallet } from './Wallet';
 import { expect } from 'chai';
-import  { JWTSigner } from './JWTSigner';
+import  { JWTService } from './JWTService';
 
 describe("#wallet", function () {
   let selectedWallet;
@@ -111,7 +111,7 @@ describe("#wallet", function () {
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
 
-      const signer = new JWTSigner(wallet);
+      const signer = new JWTService(wallet);
       const jwt = signer.signES256K({
         testing: 'testing'
       }, {
@@ -139,7 +139,7 @@ describe("#wallet", function () {
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
 
-      const signer = new JWTSigner(wallet);
+      const signer = new JWTService(wallet);
       const jwt = await signer.signES256KAsDID('0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
         testing: 'testing'
       }, {
@@ -156,5 +156,62 @@ describe("#wallet", function () {
       throw e;
     }
   });
+
+  it("when signing with ES256K-R DID, should return a signed JWT", async function () {
+
+    const mnemonic = Wallet.generateMnemonic();
+    const opts = { mnemonic, password: '123password' };
+    const keystore = await Wallet.createHDWallet(opts);
+    expect(JSON.parse(keystore).version).equal(3);
+
+    try {
+      const wallet = await Wallet.unlock(keystore, opts.password);
+
+      const signer = new JWTService(wallet);
+      const jwt = await signer.signES256KRAsDID('0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        testing: 'testing'
+      }, {
+        iat: (new Date(2020, 10, 10)).getTime(),
+        iss: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+        sub: 'document',
+        aud: 'receptor',
+        nbf: (new Date(2020, 10, 10)).getTime(),
+      });
+
+      expect(!!jwt).equal(true)
+    }
+    catch (e) {
+      throw e;
+    }
+  });
+
+  it("when signing with Ed25519 DID, should return a signed JWT", async function () {
+
+    const mnemonic = Wallet.generateMnemonic();
+    const opts = { mnemonic, password: '123password' };
+    const keystore = await Wallet.createHDWallet(opts);
+    expect(JSON.parse(keystore).version).equal(3);
+
+    try {
+      const wallet = await Wallet.unlock(keystore, opts.password);
+
+      const signer = new JWTService(wallet);
+      const jwt = await signer.signEd25519AsDID('0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        testing: 'testing'
+      }, {
+        iat: (new Date(2020, 10, 10)).getTime(),
+        iss: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+        sub: 'document',
+        aud: 'receptor',
+        nbf: (new Date(2020, 10, 10)).getTime(),
+      });
+
+      expect(!!jwt).equal(true)
+    }
+    catch (e) {
+      throw e;
+    }
+  });
+
 
 });
