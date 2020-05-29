@@ -208,7 +208,7 @@ export class Totales implements gTotType {
     
     @ValidateNested()
     @IsOptional()
-    gOTITotal: OtrosImpuestosTasas;
+    gOTITotal?: OtrosImpuestosTasas;
     
     @ArrayMaxSize(99)
     @IsOptional()

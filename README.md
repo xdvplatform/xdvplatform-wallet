@@ -1,18 +1,20 @@
-# xdv-fe-builder
+# xdv-tools
+
+## XDV Platform tools
 
 
-* `npm i @xdvplatform/fe-builder`
+`npm i xdvplatform-tools`
 
+### Features
 
-Esquemas implementados
+#### `xdvplatform-tools/crypto`
 
-- rFE
-- dGen
-- gItem
-- gTot
+#### `xdvplatform-tools/did`
 
-Sin implementar a la fecha
+#### `xdvplatform-tools/fe`
 
-- Grupo E y F
-- gFExp y gDFRef en dGen
+#### `xdvplatform-tools/ipld`
 
+#### `xdvplatform-tools/storage`
+
+#### `xdvplatform-tools/crypto`
