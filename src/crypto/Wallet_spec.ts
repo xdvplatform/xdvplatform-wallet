@@ -1,3 +1,4 @@
+import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder'
 import createIpid, { getDid } from 'did-ipid';
 import { Wallet } from './Wallet';
 import { expect } from 'chai';
@@ -6,12 +7,23 @@ import { JOSEService } from './JOSEService';
 import { KeyConvert } from './KeyConvert';
 import { IpldClient } from './../ipld/IpldClient';
 import { JWK } from 'jose';
-
+import { LDCryptoTypes } from './LDCryptoTypes';
+import { Authentication } from '../did/Authentication';
+import { ec } from 'elliptic';
+import { ethers } from 'ethers';
+import { DIDMethodXDV } from '../did/DIDMethodXDV';
 const Resolver = require('did-resolver');
+let localStorage = {};
+const ipld = new IpldClient();
+const xdvMethod = new DIDMethodXDV(ipld);
 
 describe("#wallet", function () {
   let selectedWallet;
-  beforeEach(function () {
+  before(async function () {
+
+    // create ipld instance
+    await ipld.initialize();
+
   });
 
   it("when adding a password for a new wallet, should create a keystore", async function () {
@@ -99,7 +111,7 @@ describe("#wallet", function () {
 
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
-      const der = KeyConvert.getES256KAsDER(wallet.getES256K().getPrivate().toString());
+      const der = KeyConvert.getES256K(wallet.getES256K());
       expect(!!der).equal(true);
     }
     catch (e) {
@@ -120,7 +132,7 @@ describe("#wallet", function () {
         const wallet = await Wallet.unlock(keystore, opts.password);
         const key = wallet.getES256K();
         const pem = KeyConvert.getES256K(key).pem;
-        const jwt = JWTService.signES256K(pem, {
+        const jwt = JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -137,7 +149,7 @@ describe("#wallet", function () {
       }
     });
 
-    it("when signing with ES256K DID, should return a signed JWT", async function () {
+    xit("when signing with RSA, should return a signed JWT", async function () {
 
       const mnemonic = Wallet.generateMnemonic();
       const opts = { mnemonic, password: '123password' };
@@ -146,9 +158,9 @@ describe("#wallet", function () {
 
       try {
         const wallet = await Wallet.unlock(keystore, opts.password);
+        const key = wallet.getRSA2048Standalone();
 
-        const kp = wallet.getES256K();
-        const jwt = await JWTService.signES256KAsDID(kp, '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        const jwt = JWTService.sign((await key).toPEM(), {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -165,7 +177,7 @@ describe("#wallet", function () {
       }
     });
 
-    it("when signing with ES256K-R DID, should return a signed JWT", async function () {
+    it("when signing with P256, should return a signed JWT", async function () {
 
       const mnemonic = Wallet.generateMnemonic();
       const opts = { mnemonic, password: '123password' };
@@ -174,9 +186,10 @@ describe("#wallet", function () {
 
       try {
         const wallet = await Wallet.unlock(keystore, opts.password);
+        const key = wallet.getP256();
 
-        const kp = wallet.getP256();
-        const jwt = await JWTService.signES256KRAsDID(kp, '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        const pem = KeyConvert.getP256(key).pem;
+        const jwt = JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -193,7 +206,7 @@ describe("#wallet", function () {
       }
     });
 
-    it("when signing with Ed25519 DID, should return a signed JWT", async function () {
+    it("when signing with Ed25519, should return a signed JWT", async function () {
 
       const mnemonic = Wallet.generateMnemonic();
       const opts = { mnemonic, password: '123password' };
@@ -202,9 +215,10 @@ describe("#wallet", function () {
 
       try {
         const wallet = await Wallet.unlock(keystore, opts.password);
+        const key = wallet.getEd25519();
 
-        const kp = wallet.getEd25519();
-        const jwt = await JWTService.signEd25519AsDID(kp, '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        const pem = KeyConvert.getEd25519(key).pem;
+        const jwt = JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -238,8 +252,24 @@ describe("#wallet", function () {
         const kp = wallet.getP256();
         const kpJwk = KeyConvert.getP256(kp);
 
+        // Create LD Crypto Suite - p256 / Sepc256r1
+        const ldCrypto = await KeyConvert
+          .createLinkedDataJsonFormat(LDCryptoTypes.Sepc256r1, kpJwk.ldSuite);
+
+        // Create IPFS key storage lock
+        const session = await xdvMethod.createIpldSession(kpJwk.pem);
+
+        // Create DID document with an did-ipid based issuer
+        const did = await DIDDocumentBuilder
+          .createDID({
+            issuer: session.key,
+            verificationKeys: [ldCrypto.toPublicKey()],
+            authenticationKeys: [ldCrypto.toAuthorizationKey()]
+          });
+
         // Signing
-        const signed = await JWTService.signES256KRAsDID(kp, '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F', {
+        const signed = await JWTService.sign(kpJwk.pem, {
+          ...did,
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -252,7 +282,7 @@ describe("#wallet", function () {
         expect(!!signed).equal(true)
 
         const encrypted = JOSEService.encrypt(kpJwk.jwk, signed);
-        console.log(encrypted);
+        expect(!!encrypted.ciphertext).equals(true)
 
       }
       catch (e) {
@@ -260,11 +290,9 @@ describe("#wallet", function () {
       }
     });
   });
+  describe("#ipld", function () {
 
-  describe("#decrypt/verify", function () {
-
-    it(`when signing a secp256r1/P256 DID with a derived key and encrypting with JWE,
-     should decrypt and verify`, async function () {
+    it("when signing a secp256r1/P256 DID and encrypting with JWE, should store in ipld", async function () {
 
       const mnemonic = Wallet.generateMnemonic();
       const opts = { mnemonic, password: '123password' };
@@ -272,15 +300,99 @@ describe("#wallet", function () {
       expect(JSON.parse(keystore).version).equal(3);
 
       try {
-        // create ipld instance
-        const ipld = new IpldClient();
-        await ipld.initialize();
+        // Unlock wallet
+        const wallet = await Wallet.unlock(keystore, opts.password);
+
+        // Create key
+        const kp = wallet.getP256();
+        const kpJwk = KeyConvert.getP256(kp);
+
+        // Create LD Crypto Suite - p256 / Sepc256r1
+        const ldCrypto = await KeyConvert
+          .createLinkedDataJsonFormat(LDCryptoTypes.Sepc256r1, kpJwk.ldSuite);
+
+        // Create DID id from PEM keypair and store it variable  
+        const session = await xdvMethod.createIpldSession(kpJwk.pem);
+
+        // Set DID
+        localStorage['recentlyStoreDID'] = session.key;
+
+        // Create DID document with an did-ipid based issuer
+        let did = await DIDDocumentBuilder
+          .createDID({
+            issuer: session.key,
+            verificationKeys: [ldCrypto.toPublicKey()],
+            authenticationKeys: [ldCrypto.toAuthorizationKey()]
+          });
+
+        // Sign as JWT
+        let signed = await JWTService.sign(kpJwk.pem, {
+          ...did,
+          testing: 'testing'
+        }, {
+          iat: (new Date(2020, 10, 10)).getTime(),
+          iss: '0x4198258023eD0D6fae5DBCF3Af2aeDaaA363571F',
+          sub: 'document',
+          aud: 'receptor',
+          nbf: (new Date(2020, 10, 10)).getTime(),
+        });
+
+        // Decoded
+        const decoded = JWTService.decodeWithSignature(signed);
+        expect(!!decoded.signature).equal(true)
+        expect(!!decoded.data).equal(true)
+        expect(!!decoded.header).equal(true)
+        expect(!!decoded.payload).equal(true)
+        // console.log(JWTService.decodeWithSignature(signed));
+
+        // Encrypt JWT
+        const encrypted = JOSEService.encrypt(kpJwk.jwk, signed);
+        // Stored decoded and encrypted
+        localStorage['recentlyStoreCID'] = await ipld.createNode({
+          ...did,
+          encrypted
+        });
+
+        // Store Keystore
+        localStorage['ps'] = opts.password;
+        localStorage['ks'] = keystore;
+        expect(!!localStorage['recentlyStoreDID']).equals(true);
+      }
+      catch (e) {
+        console.log(e);
+        throw e;
+      }
+    });
+
+
+    it("when stored in ipld, should fetch recently saved ipld node", async function () {
+      console.log(`Fetching ${localStorage['recentlyStoreCID']}...`)
+      const node = await ipld.getNode(localStorage['recentlyStoreCID'], '/');
+      expect(!!node.value.id).equals(true)
+    });
+
+
+    it("when stored in ipld, should fetch and resolve ipld node", async function () {
+      console.log(`Fetching ${localStorage['recentlyStoreCID']}...`)
+      const resolver = await xdvMethod.getResolver(localStorage['recentlyStoreCID']);
+      const doc = await resolver.xdv(localStorage['recentlyStoreDID']);
+  
+    });
+  });
+
+
+  describe("#decrypt/verify", function () {
+
+    it(`when signing a secp256r1/P256 DID with a derived key and encrypting with JWE,
+     should decrypt and verify`, async function () {
+
+      try {
+        // get document with a CID and DID
+        const resolver = await xdvMethod.getResolver(localStorage['recentlyStoreCID']);
+        const doc = await resolver.xdv(localStorage['recentlyStoreDID']);
 
         // unlock wallet
-        let wallet = await Wallet.unlock(keystore, opts.password);
-        wallet = wallet.deriveChild(1);
-        console.log(wallet.path);
-        const path = wallet.path;
+        let wallet = await Wallet.unlock(localStorage['ks'], localStorage['ps']);
 
         // create new key pairs
         // const passphrase = 'password-to-store-pem-for-later-use';
@@ -288,51 +400,12 @@ describe("#wallet", function () {
         const kpJwk = KeyConvert.getP256(kp);
 
 
-        // create did
-        const rsaKey = await wallet.getRSA2048Standalone();
-        const rsaPemJwk = KeyConvert.getRSA(rsaKey);
-        // console.log(rsaPemJwk)
-        const didFromGet = await ipld.getDID(rsaPemJwk.pem);
-        console.log(didFromGet);
-        const did = await ipld.createDID(rsaPemJwk.pem);
-
-        // Signing
-        const signed = await JWTService.signES256KRAsDID(kp, did, {
-          testing: 'testing'
-        }, {
-          iat: (new Date(2020, 10, 10)).getTime(),
-          iss: did,
-          sub: 'document',
-          aud: did,
-          nbf: (new Date(2020, 10, 10)).getTime(),
-        });
-        // console.log(signed);
-        expect(!!signed).equal(true)
-
-        const encrypted = JOSEService.encrypt(kpJwk.jwk, signed);
-
-        // get key from path
-        wallet = wallet.deriveFromPath(path);
-        const kpRestored = wallet.getP256();
-        const kpJwkRestored = KeyConvert.getP256(kpRestored);
-
         // decrypt
-        const plaintext = JOSEService.decrypt(kpJwkRestored.jwk, encrypted);
+        const plaintext = JOSEService.decrypt(kpJwk.jwk, doc.encrypted);
         console.log(`signed jwt: ${plaintext.toString()}`);
 
-        // get ipld resolver
-        const didIpld = await ipld.getIpidDidResolver();
-        const res = new Resolver.Resolver(didIpld);
-        ipld.setUniversalResolver(res);
-        
-        // verify
-        const verified = await JWTService.didVerify(signed, {
-          resolver: res,
-          audience: did
-        });
-        console.log(`verified: ${verified}`);
-        expect(signed).equal(plaintext.toString());
-
+        const verified = JWTService.verify(kpJwk.pem, plaintext.toString(), 'receptor');
+        console.log(verified)
       }
       catch (e) {
         throw e;
