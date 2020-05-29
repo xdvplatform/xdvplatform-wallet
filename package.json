@@ -1,6 +1,6 @@
 {
   "name": "xdvplatform-tools",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
@@ -10,7 +10,7 @@
     "watch": "tsnd --respawn index.ts --watch ./src"
   },
   "keywords": [],
-  "author": "",
+  "author": "@molekilla",
   "license": "ISC",
   "devDependencies": {
     "@types/expect": "^24.3.0",
