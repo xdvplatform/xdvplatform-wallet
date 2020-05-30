@@ -1,18 +1,12 @@
 import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder'
-import createIpid, { getDid } from 'did-ipid';
 import { Wallet } from './Wallet';
 import { expect } from 'chai';
 import { JWTService } from './JWTService';
 import { JOSEService } from './JOSEService';
 import { KeyConvert, X509Info } from './KeyConvert';
 import { IpldClient } from './../ipld/IpldClient';
-import { JWK } from 'jose';
 import { LDCryptoTypes } from './LDCryptoTypes';
-import { Authentication } from '../did/Authentication';
-import { ec } from 'elliptic';
-import { ethers } from 'ethers';
 import { DIDMethodXDV } from '../did/DIDMethodXDV';
-const Resolver = require('did-resolver');
 let localStorage = {};
 const ipld = new IpldClient();
 const xdvMethod = new DIDMethodXDV(ipld);

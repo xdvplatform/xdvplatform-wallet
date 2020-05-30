@@ -24,12 +24,21 @@ export class IpldClient {
             config: {
                 Addresses: {
                     Swarm: [
+                        "/dns4/star-signal.cloud.ipfs.team/wss/p2p-webrtc-star",
                         '/ip4/0.0.0.0/tcp/0'
                     ],
                     API: '/ip4/127.0.0.1/tcp/0',
-                    G1ateway: '/ip4/127.0.0.1/tcp/0'
+                    Gateway: '/ip4/127.0.0.1/tcp/0'
                 },
-                "AutoNAT": {},
+                Discovery: {
+                    // MDNS: {
+                    //     Enabled: true,
+                    //     Interval: 10
+                    // },
+                    webRTCStar: {
+                        Enabled: true
+                    }
+                },
                 "Bootstrap": [
                     "/dnsaddr/bootstrap.libp2p.io/p2p/QmNnooDu7bfjPFoTZYxMNLWUQJyrVwtbZg5gBMjTezGAJN",
                     "/dnsaddr/bootstrap.libp2p.io/p2p/QmQCU2EcMqAqQPR2i9bChDtGNJchTbq5TbXJJ16u19uLTa",
@@ -37,6 +46,14 @@ export class IpldClient {
                     "/dnsaddr/bootstrap.libp2p.io/p2p/QmcZf59bWwK5XFi76CZX8cbJ4BhTzzA3gU1ZjYZcYW3dwt",
                     "/ip4/104.131.131.82/tcp/4001/p2p/QmaCpDMGvV2BGHeYERUEnRQAwe3N8SzbUtfsmvsqQLuvuJ"
                 ],
+                AutoNAT: {},
+                Pubsub: {
+                    Router: "gossipsub"
+                },
+                EXPERIMENTAL: {
+                    pubsub: true
+                }
+
             }
         })
 
