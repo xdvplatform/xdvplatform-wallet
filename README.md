@@ -9,12 +9,11 @@
 
 #### `xdvplatform-tools/crypto`
 
-- Supports for JWT, DID, JWE
+- Supports for JWT, DID, JWE, XmlDsig
 - Algorithms included: `secp256k1`, `secp256r1`, `ed25519`, `rsa` and upcoming `bls`
 - `Keystore`, `HD Key`, `DER`, `JWK` and `PEM` support out of the box
 - Support for output to `LD Crypto Suite` key pairs for `ecdsa` and `ed25519`
 - More features planned like `bls` and `schnorr` for multi sig scenarios
-- Planned feature includes `xmldsig` and `pkcs#7/X509` signing
 
 #### `xdvplatform-tools/did`
 

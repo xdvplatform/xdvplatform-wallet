@@ -5,8 +5,36 @@ import { LDCryptoTypes } from './LDCryptoTypes';
 import { PrivateKey } from "./../../src/did/PrivateKey";
 import { ethers } from 'ethers';
 import bs58 from 'bs58';
+import rsa from 'js-x509-utils';
+import { PublicKey } from '../did';
+
+export class X509Info {
+    countryName: string;
+    stateOrProvinceName: string;
+    localityName: string;
+    organizationName: string;
+    organizationalUnitName: string;
+    commonName: string;
+}
+
 export class KeyConvert {
 
+    public static async getX509RSA(kp: JWK.RSAKey, issuer: X509Info, subject: X509Info, passphrase?: string) {
+
+
+        let jwk = kp;
+        // jwk = { alg: 'RS256', ...jwk };
+        const ldSuite = {
+            publicKeyJwk: kp.toJWK(false),
+        }
+
+        return {
+            jwk,
+            der: undefined,
+            pem: jwk.toPEM(true),
+            ldSuite,
+        };
+    }
 
     /**
      * Returns private keys in DER, JWK and PEM formats
@@ -48,6 +76,7 @@ export class KeyConvert {
         }, options);
 
         const ldSuite = {
+            publicKeyJwk: JWK.asKey(composePemKey).toJWK(false),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
             privBytes: () => kp.getPrivate().toBuffer()
         };
@@ -101,6 +130,7 @@ export class KeyConvert {
 
 
         const ldSuite = {
+            publicKeyJwk: JWK.asKey(composePemKey).toJWK(false),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
             privBytes: () => kp.getPrivate().toBuffer()
         };
@@ -156,6 +186,25 @@ export class KeyConvert {
     public static async createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false) {
         const id = Buffer.from(ethers.utils.randomBytes(10000)).toString('base64');
         switch (algorithm) {
+
+            case LDCryptoTypes.JWK:
+                return Object.assign(
+                    new PublicKey(),
+                    {
+                        id: `did:key:${id}`,
+                        type: 'JwsVerificationKey2020',
+                        publicKeyJwk: key.publicJwk,
+                    }, {});
+
+            case LDCryptoTypes.RSA:
+                return Object.assign(
+                    new PublicKey(),
+                    {
+                        id: `did:key:${id}`,
+                        type: 'RsaVerificationKey2018',
+                        publicKeyPem: key.publicPem,
+                    }, {});
+
             case LDCryptoTypes.Sepc256r1:
                 return Object.assign(
                     new PrivateKey(),
@@ -165,7 +214,6 @@ export class KeyConvert {
                         privateKeyBase58: hasPrivate ? bs58.encode(key.privBytes()) : undefined,
                         publicKeyBase58: bs58.encode(key.pubBytes())
                     }, {});
-                break;
             case LDCryptoTypes.Sepc256k1:
                 return Object.assign(
                     new PrivateKey(),
@@ -175,7 +223,6 @@ export class KeyConvert {
                         privateKeyBase58: hasPrivate ? bs58.encode(key.privBytes()) : undefined,
                         publicKeyBase58: bs58.encode(key.pubBytes())
                     }, {});
-                break;
             case LDCryptoTypes.Ed25519:
                 return Object.assign(
                     new PrivateKey(),
@@ -185,7 +232,6 @@ export class KeyConvert {
                         privateKeyBase58: hasPrivate ? bs58.encode(key.privBytes()) : undefined,
                         publicKeyBase58: bs58.encode(key.pubBytes())
                     }, {});
-                break;
         }
     }
     /**
@@ -208,6 +254,8 @@ export class KeyConvert {
 
 
 export interface KeyLike {
+    publicPem?: string,
+    publicJwk?: JWK.Key,
     privBytes(): Buffer | Uint8Array;
     pubBytes(): Buffer | Uint8Array;
 }

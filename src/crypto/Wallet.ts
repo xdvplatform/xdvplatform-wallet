@@ -125,8 +125,11 @@ export class Wallet {
     }
 
 
-    public getRSA2048Standalone(): Promise<JWK.RSAKey> {
-        return JWK.generate("RSA");
+    public static getRSA256Standalone(len: number = 2048): Promise<JWK.RSAKey> {
+        return JWK.generate('RSA', len, {
+            alg: 'RS256',
+            use:'sig'
+        });
     }
 
     

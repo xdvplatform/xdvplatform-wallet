@@ -19,4 +19,6 @@ export class PublicKey {
     publicKeyHex?: string;
     @IsOptional()
     publicKeyPem?: string;
+    @IsOptional()
+    publicKeyJwk?: string;
 }

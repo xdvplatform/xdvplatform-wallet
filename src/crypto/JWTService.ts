@@ -8,7 +8,7 @@ export class JWTService {
     }
 
     public static decodeWithSignature(jwt: string) {
-        const decoded = { 
+        const decoded = {
             ...JWT.decode(jwt, { 'complete': true }),
             data: `${jwt.split('.')[0]}.${jwt.split('.')[1]}`,
         };
@@ -22,8 +22,8 @@ export class JWTService {
      * @param payload JSON payload
      * @param options JWT payload config
      */
-    public static sign(pem: string, payload: any, options: JWTPayload) {
-        const key = JWK.asKey(pem)
+    public static sign(pem: any, payload: any, options: JWTPayload) {
+        const key = typeof pem === 'string' ? JWK.asKey(pem) : <JWK.Key>pem;
         return JWT.sign(payload, key, {
             audience: options.aud,
             issuer: options.iss,

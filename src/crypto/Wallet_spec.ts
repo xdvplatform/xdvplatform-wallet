@@ -4,7 +4,7 @@ import { Wallet } from './Wallet';
 import { expect } from 'chai';
 import { JWTService } from './JWTService';
 import { JOSEService } from './JOSEService';
-import { KeyConvert } from './KeyConvert';
+import { KeyConvert, X509Info } from './KeyConvert';
 import { IpldClient } from './../ipld/IpldClient';
 import { JWK } from 'jose';
 import { LDCryptoTypes } from './LDCryptoTypes';
@@ -149,18 +149,21 @@ describe("#wallet", function () {
       }
     });
 
-    xit("when signing with RSA, should return a signed JWT", async function () {
+    it("when signing with RSA, should return a signed JWT", async function () {
 
-      const mnemonic = Wallet.generateMnemonic();
-      const opts = { mnemonic, password: '123password' };
-      const keystore = await Wallet.createHDWallet(opts);
-      expect(JSON.parse(keystore).version).equal(3);
 
       try {
-        const wallet = await Wallet.unlock(keystore, opts.password);
-        const key = wallet.getRSA2048Standalone();
-
-        const jwt = JWTService.sign((await key).toPEM(), {
+        const key = await Wallet.getRSA256Standalone();
+        const issuer: X509Info = {
+          stateOrProvinceName: 'PA',
+          organizationName: 'RM',
+          organizationalUnitName: 'Engineering',
+          commonName: 'Rogelio Morrell',
+          countryName: 'Panama',
+          localityName: 'Panama'
+        };
+        const { jwk } = await KeyConvert.getX509RSA(key, issuer, issuer);
+        const jwt = JWTService.sign(jwk, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
