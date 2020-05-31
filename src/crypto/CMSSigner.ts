@@ -1,32 +1,24 @@
 import { TextEncoder } from 'util';
 
 const forge = require("node-forge");
-const ab2str = require("arraybuffer-to-string");
+
 const arrayBufferConcat = require("arraybuffer-concat");
 
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length * 2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i = 0, strLen = str.length; i < strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
-}
 
-export class PKCS7Utils {
-  public static signDetachedPdf(
-    cert: Uint8Array,
-    pvk: Uint8Array,
-    pdf: Uint8Array
+export class CMSSigner {
+  public static sign(
+    pemCertificate: string,
+    signingKey: string,
+    content: Uint8Array,
+    detached: boolean = true
   ) {
-    const pki = forge.pki;
-    const privateKey = forge.pki.privateKeyFromPem(ab2str(pvk));
-    const certificate = forge.  pki.certificateFromPem(ab2str(cert));
+    const privateKey = forge.pki.privateKeyFromPem(signingKey);
+    const certificate = forge.  pki.certificateFromPem(pemCertificate);
 
     // create PKCS#7 signed data with authenticatedAttributes
     // attributes include: PKCS#9 content-type, message-digest, and signing-time
     var p7 = forge.pkcs7.createSignedData();
-    p7.content = forge.util.createBuffer(pdf, "binary");
+    p7.content = forge.util.createBuffer(content, "binary");
     p7.addCertificate(certificate);
     p7.addSigner({
       key: privateKey,
@@ -54,10 +46,10 @@ export class PKCS7Utils {
 
     // PKCS#7 Sign in detached mode.
     // Includes the signature and certificate without the signed data.
-    p7.sign({ detached: true });
+    p7.sign({ detached });
 
     const raw = forge.asn1.toDer(p7.toAsn1()).getBytes();
-    const signed = arrayBufferConcat(raw, pdf);
+    const signed = arrayBufferConcat(raw, content);
     return { pem: new TextEncoder().encode(pem), signed };
   }
 

@@ -3,7 +3,24 @@ import { ec, eddsa } from 'elliptic';
 import { JWK } from 'jose';
 import { LDCryptoTypes } from './LDCryptoTypes';
 import { PrivateKey } from "./../../src/did/PrivateKey";
+import { PublicKey } from '../did';
+export declare class X509Info {
+    countryName: string;
+    stateOrProvinceName: string;
+    localityName: string;
+    organizationName: string;
+    organizationalUnitName: string;
+    commonName: string;
+}
 export declare class KeyConvert {
+    static getX509RSA(kp: JWK.RSAKey, issuer: X509Info, subject: X509Info, passphrase?: string): Promise<{
+        jwk: JWK.RSAKey;
+        der: any;
+        pem: string;
+        ldSuite: {
+            publicKeyJwk: import("jose").JWKRSAKey;
+        };
+    }>;
     /**
      * Returns private keys in DER, JWK and PEM formats
      * @param kp Key pair
@@ -14,6 +31,7 @@ export declare class KeyConvert {
         jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
         pem: any;
         ldSuite: {
+            publicKeyJwk: import("jose").JSONWebKey;
             pubBytes: () => Uint8Array;
             privBytes: () => Buffer;
         };
@@ -28,6 +46,7 @@ export declare class KeyConvert {
         jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
         pem: any;
         ldSuite: {
+            publicKeyJwk: import("jose").JSONWebKey;
             pubBytes: () => Uint8Array;
             privBytes: () => Buffer;
         };
@@ -42,7 +61,15 @@ export declare class KeyConvert {
         jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
         pem: any;
     };
-    static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate?: boolean): Promise<(PrivateKey & {
+    static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate?: boolean): Promise<(PublicKey & {
+        id: string;
+        type: string;
+        publicKeyJwk: JWK.Key;
+    }) | (PublicKey & {
+        id: string;
+        type: string;
+        publicKeyPem: string;
+    }) | (PrivateKey & {
         id: string;
         type: string;
         privateKeyBase58: any;
@@ -69,6 +96,8 @@ export declare class KeyConvert {
     };
 }
 export interface KeyLike {
+    publicPem?: string;
+    publicJwk?: JWK.Key;
     privBytes(): Buffer | Uint8Array;
     pubBytes(): Buffer | Uint8Array;
 }

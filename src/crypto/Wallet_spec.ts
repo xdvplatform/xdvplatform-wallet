@@ -373,7 +373,7 @@ describe("#wallet", function () {
       console.log(`Fetching ${localStorage['recentlyStoreCID']}...`)
       const resolver = await xdvMethod.getResolver(localStorage['recentlyStoreCID']);
       const doc = await resolver.xdv(localStorage['recentlyStoreDID']);
-  
+
     });
   });
 
@@ -399,10 +399,9 @@ describe("#wallet", function () {
 
         // decrypt
         const plaintext = JOSEService.decrypt(kpJwk.jwk, doc.encrypted);
-        console.log(`signed jwt: ${plaintext.toString()}`);
 
         const verified = JWTService.verify(kpJwk.pem, plaintext.toString(), 'receptor');
-        console.log(verified)
+        expect(!!verified.id).equals(true);
       }
       catch (e) {
         throw e;

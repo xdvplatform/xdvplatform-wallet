@@ -37,5 +37,5 @@ export declare class Wallet {
     getP256(): ec.KeyPair;
     getES256K(): ec.KeyPair;
     getBlsMasterKey(): any;
-    getRSA2048Standalone(): Promise<JWK.RSAKey>;
+    static getRSA256Standalone(len?: number): Promise<JWK.RSAKey>;
 }

@@ -14,7 +14,7 @@ export declare class JWTService {
      * @param payload JSON payload
      * @param options JWT payload config
      */
-    static sign(pem: string, payload: any, options: JWTPayload): string;
+    static sign(pem: any, payload: any, options: JWTPayload): string;
     /**
      * Verifies a signed message
      * @param key PEM format key

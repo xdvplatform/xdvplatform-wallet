@@ -63,7 +63,6 @@ export class FEBuilder {
       .ele('dVerForm').txt(this._rFE.dVerForm.toFixed(2)).up()
       .ele('dId').txt(this._rFE.dId).up();
 
-    console.log(this._rFE.gDGen)
     // add dGen
     let parent = DGen.toXmlObject(this._rFE.gDGen, doc).up();
 
@@ -79,7 +78,6 @@ export class FEBuilder {
     parent = Totales.toXmlObject(this._rFE.gTot, parent).up();
 
     const xmlString = parent.end({ headless: true, prettyPrint: false });
-    console.log(xmlString);
     return xmlString;
   }
 };

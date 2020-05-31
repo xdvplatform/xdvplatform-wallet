@@ -1,7 +1,32 @@
+import { DIDNodeSchema, DocumentNodeSchema, LogNodeSchema, EventType, BlockSchema } from '../storage';
+import { DIDDocument } from '../did';
+import moment from 'moment';
+
+export interface LogBlockReference{
+    cids: string[];
+    timestamp: number;
+}
+
+export interface DIDBlockReference {
+    cid: string;
+    tag: string;
+}
+
+export interface DocumentBlockReference {
+    cid: string;
+    tag: string;
+}
+
+export class LoggableNode{
+    cid: string;
+    cidLog: string;
+}
+
 export const generateRandomString = () =>
     Math.random()
         .toString(36)
         .substring(2);
+
 const IPFS = require('ipfs');
 const { DAGNode } = require('ipld-dag-pb');
 const Graph = require('ipld-graph-builder');
@@ -11,6 +36,7 @@ const DEFAULT_CONTEXT = 'https://w3id.org/did/v1';
 export class IpldClient {
     public ipfsClient;
     private graph: any;
+    private signer: (a: string) => Promise<string>;
     private ipfsPath: string;
     constructor() {
 
@@ -100,13 +126,152 @@ export class IpldClient {
      * Creates a node in ipld
      * @param documentPayload An object payload
      */
-    public async createNode(documentPayload: object, cid?: string) {
+    public createNode(documentPayload: object, cid?: string): string {
         if (cid) {
-            return await this.ipfsClient.dag.put(documentPayload, { cid, pin: true })
-
+            return this.ipfsClient.dag.put(documentPayload, { cid, pin: true })
         } else {
-            return await this.ipfsClient.dag.put(documentPayload, { format: 'dag-cbor', hashAlg: 'sha2-256', pin: true })
+            return this.ipfsClient.dag.put(documentPayload, { format: 'dag-cbor', hashAlg: 'sha2-256', pin: true })
         }
     }
 
+    public async createDidNode(did: DIDDocument, tag: string): Promise<LoggableNode> {
+        // initial tree
+        const didNode = DIDNodeSchema.create(did, 'rsa_key_for_documens');
+        const cid = await this.createNode(didNode);
+
+        // create log
+        const log = LogNodeSchema.create(cid, EventType.add, `DID node created for ${did.id}`);
+        const logCid = await this.createNode(log);
+
+        return {
+            cid: cid.toString(),
+            cidLog: logCid.toString(),
+        }
+    }
+
+
+    public async appendDocumentNode(didCid: string, document: any, tag: string): Promise<LoggableNode> {
+
+        // create document
+        const docCid = DocumentNodeSchema.create(didCid, {
+            ...document
+        }, tag);
+        const cid = await this.createNode(docCid);
+
+        // create log
+        const log = LogNodeSchema.create(cid, EventType.add, `Document node appended`);
+        const logCid = await this.createNode(log);
+
+        return {
+            cid: cid.toString(),
+            cidLog: logCid.toString(),
+        }
+    }
+
+    public setSigner(signerFun: (a: string) => Promise<string>) {
+        this.signer = signerFun;
+    }
+
+    private async updateRoot(lastCid: string, rootPatch: BlockSchema): Promise<string> {
+        let root: any = {};
+        if (lastCid === null) {
+            root = {
+                did: {
+                    ...rootPatch.did,
+                },
+                document: {
+                    ...rootPatch.document,
+                }, logs: {
+                    ...rootPatch.logs
+                },
+                $block: 0,
+                $ref: undefined,
+            };
+        } else {
+            const { value } = await this.getNode(lastCid, '/');
+            const b = value.$block + 1;
+            root = {
+                did: {
+                    ...value.did,
+                    ...rootPatch.did,
+                },
+                document: {
+                    ...value.document,
+                    ...rootPatch.document,
+                }, logs: {
+                    ...value.logs,
+                    ...rootPatch.logs
+                },
+                $block: b,
+                $ref: lastCid,
+            };
+        }
+
+        const signature = await this.signer(JSON.stringify(root));
+        root.$signature = signature;
+        return await this.createNode(root);
+    }
+
+    public async patchBlock(currentRef: string | null, did: DIDBlockReference[] = [],
+        document: DocumentBlockReference[] = [],
+        log: LogBlockReference[] = []) {
+        let block: BlockSchema = new BlockSchema();
+        if (currentRef !== null) {
+            block = await this.getNode(currentRef, '/');
+        }
+        if (this.signer === null) {
+            throw new Error('Missing signer');
+        }
+
+        // DID
+        let tempDid: any = {
+            ...block.did,
+        };
+        did.forEach(({ cid, tag }) => {
+            tempDid = {
+                ...tempDid,
+                [tag]: cid
+            }
+        });
+
+
+        // Document
+        let tempDoc: any = {
+            ...block.document,
+        };
+        document.forEach(({ cid, tag }) => {
+            tempDoc = {
+                ...tempDoc,
+                [tag]: cid
+            }
+        });
+
+
+        // Log
+        let tempLog: any = {
+            ...block.logs,
+        };
+        log.forEach(({ cids, timestamp }) => {
+            tempLog = {
+                ...tempLog,
+                [timestamp]: [...cids]
+            }
+        });
+
+
+        const rootNode = <BlockSchema>{
+            did: {
+                ...tempDid
+            },
+            document: {
+                ...tempDoc
+            }, logs: {
+                ...tempLog
+            }
+        };
+
+        const blockCid = await this.updateRoot(currentRef, rootNode);
+
+        return blockCid;
+    }
 }

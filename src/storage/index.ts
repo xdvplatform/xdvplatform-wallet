@@ -1,4 +1,4 @@
-export * from './AccountNodeSchema';
+export * from './DIDNodeSchema';
 export * from './DocumentNodeSchema';
 export * from './LogNodeSchema';
-export * from './StorageNodeSchema';
+export * from './BlockSchema';

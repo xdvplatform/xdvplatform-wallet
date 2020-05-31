@@ -183,7 +183,7 @@ export class KeyConvert {
     }
 
 
-    public static async createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false) {
+    public static async createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false): (PrivateKey) {
         const id = Buffer.from(ethers.utils.randomBytes(10000)).toString('base64');
         switch (algorithm) {
 

@@ -7,4 +7,5 @@ export declare class PublicKey {
     publicKeyBase58?: string;
     publicKeyHex?: string;
     publicKeyPem?: string;
+    publicKeyJwk?: string;
 }

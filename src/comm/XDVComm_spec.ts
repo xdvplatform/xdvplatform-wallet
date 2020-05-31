@@ -5,7 +5,6 @@ import { IpldClient } from './../ipld';
 import { DIDMethodXDV } from '../did';
 import * as hash from 'hash.js';
 let localStorage = {};
-const Room = require('ipfs-pubsub-room')
 
 const alice = new IpldClient();
 const bob = new IpldClient();
@@ -47,13 +46,13 @@ describe("#xdvcomm", function () {
     await bob.ipfsClient.pubsub.subscribe(topic1, (msg) => {
       if (msg.from !== peerBob.id) {
         console.log(`Message from ${msg.from} to Bob: ${msg.data.toString()}`)
-        expect(msg.from).equals(peerBob.id);
+        expect(msg.from).equals(peerAlice.id);
       }
     }, { discover: true });
     await alice.ipfsClient.pubsub.subscribe(topic1, (msg) => {
       if (msg.from !== peerAlice.id) {
         console.log(`Message from ${msg.from} to Alice: ${msg.data.toString()}`);
-        expect(msg.from).equals(peerAlice.id);
+        expect(msg.from).equals(peerBob.id);
       }
     }, { discover: true });
 

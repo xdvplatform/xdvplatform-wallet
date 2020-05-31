@@ -1,30 +1,23 @@
 import { IsArray, ArrayMaxSize, IsDefined, MaxLength, IsOptional, IsBase64 } from 'class-validator';
-import { AccountNodeSchema,  } from './AccountNodeSchema';
 import { LogNodeSchema } from './LogNodeSchema';
+import { type } from 'os';
 
-interface Indexable<T> {
-    [index: string]: T;
-}
-class DocumentItemNodeSchema{
+export type NodeType = 'child' | 'document';
 
-    @IsDefined()
-    @IsBase64()
-    public document: Indexable<string>;
 
-}
 export class DocumentNodeSchema {
 
-    @IsDefined()
-    public issuer: AccountNodeSchema;
 
-    @MaxLength(100)
-    public tag: Indexable<DocumentItemNodeSchema>;
+    public static create(did: string, document: any, tag: string) {
+        return Object.assign(new DocumentNodeSchema(), {
+            ...document,
+            '$did': did,
+            tag
+        });
+    }
 
-    @IsOptional()
-    public detachedSignatures?: Indexable<any>;
-
-    @IsOptional()
-    public logs?: Indexable<LogNodeSchema>;
-
+    tag: string;
+    
+    '$did': string;
 }
 

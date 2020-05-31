@@ -1,5 +1,5 @@
 import { IsArray, ArrayMaxSize, IsNumber, IsDefined } from 'class-validator';
-import { RefNodeSchema } from './AccountNodeSchema';
+import moment from 'moment';
 
 export enum EventType {
     add,
@@ -11,6 +11,16 @@ export enum EventType {
 }
 export class LogNodeSchema {
 
+
+    public static create(parent: string, logType: EventType, log: string) {
+        return Object.assign(new LogNodeSchema(), {
+            log,
+            $parent: parent,
+            eventType: EventType[logType],
+            timestamp: moment().unix(),
+        });
+    }
+
     @IsNumber()
     @IsDefined()
     public timestamp: number;
@@ -18,11 +28,8 @@ export class LogNodeSchema {
     @IsDefined()
     public eventType: keyof typeof EventType;
 
-    @IsDefined()
-    public userDid: string;
-
-
     public log: string;
 
-
+    public $parent: string;
+    
 }

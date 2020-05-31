@@ -111,7 +111,6 @@ export class X509 {
             type: 'pkcs1',
             format: 'pem'
         });
-        console.log(pvk)
         cert.sign(forge.pki.privateKeyFromPem(
             pvk
         ));
