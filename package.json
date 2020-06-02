@@ -54,6 +54,7 @@
     "multihashing-async": "^0.8.1",
     "noble-bls12-381": "^0.2.3",
     "node-forge": "^0.9.1",
+    "rxjs": "^6.5.5",
     "slip39": "^0.1.7",
     "web-xml-crypto": "^1.5.0",
     "xmlbuilder2": "^2.1.2"
