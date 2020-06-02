@@ -4,10 +4,10 @@ export declare class DIDNodeSchema extends DIDDocument {
     static create(did: DIDDocument, tag: string): {
         tag: string;
         id: string;
-        publicKey: import("../did").PublicKey[];
-        authentication?: import("../did").Authentication[];
+        publicKey: import("..").PublicKey[];
+        authentication?: import("..").Authentication[];
         uportProfile?: any;
-        service?: import("../did").ServiceEndpoint[];
+        service?: import("..").ServiceEndpoint[];
         created: Date;
         updated: Date;
     };

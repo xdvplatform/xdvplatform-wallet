@@ -13,11 +13,11 @@ export declare class X509Info {
 }
 export declare class KeyConvert {
     static getX509RSA(kp: JWK.RSAKey, issuer: X509Info, subject: X509Info, passphrase?: string): Promise<{
-        jwk: JWK.RSAKey;
+        jwk: any;
         der: any;
-        pem: string;
+        pem: any;
         ldSuite: {
-            publicKeyJwk: import("jose").JWKRSAKey;
+            publicKeyJwk: any;
         };
     }>;
     /**
@@ -27,12 +27,12 @@ export declare class KeyConvert {
      */
     static getP256(kp: ec.KeyPair, passphrase?: string): {
         der: any;
-        jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
+        jwk: any;
         pem: any;
         ldSuite: {
-            publicKeyJwk: import("jose").JSONWebKey;
-            pubBytes: () => Uint8Array;
-            privBytes: () => Buffer;
+            publicKeyJwk: any;
+            pubBytes: () => any;
+            privBytes: () => any;
         };
     };
     /**
@@ -42,12 +42,12 @@ export declare class KeyConvert {
  */
     static getES256K(kp: ec.KeyPair, passphrase?: string): {
         der: any;
-        jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
+        jwk: any;
         pem: any;
         ldSuite: {
-            publicKeyJwk: import("jose").JSONWebKey;
-            pubBytes: () => Uint8Array;
-            privBytes: () => Buffer;
+            publicKeyJwk: any;
+            pubBytes: () => any;
+            privBytes: () => any;
         };
     };
     /**
@@ -57,7 +57,7 @@ export declare class KeyConvert {
      */
     static getEd25519(kp: eddsa.KeyPair, passphrase?: string): {
         der: any;
-        jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
+        jwk: any;
         pem: any;
     };
     static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate?: boolean): (PrivateKey);
@@ -67,8 +67,8 @@ export declare class KeyConvert {
  * @param passphrase passphrase
  */
     static getRSA(rsa: JWK.RSAKey, passphrase?: string): {
-        jwk: import("jose").JWKRSAKey;
-        pem: string;
+        jwk: any;
+        pem: any;
     };
 }
 export interface KeyLike {

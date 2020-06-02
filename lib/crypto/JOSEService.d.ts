@@ -18,7 +18,7 @@ export declare class JOSEService {
      * @param key JWK key
      * @param payload String or Buffer payload
      */
-    static encrypt(key: JWK.Key | any, payload: string | Buffer): JWE.FlattenedJWE;
+    static encrypt(key: JWK.Key | any, payload: string | Buffer): any;
     /**
      * Decrypts a JWE cipher
      * @param key JWK Key
@@ -30,5 +30,5 @@ export declare class JOSEService {
      * @param recipients JWK keys
      * @param payload String or Buffer payload
      */
-    static encryptMultiple(recipients: KeyRecipient[], payload: string | Buffer): JWE.GeneralJWE;
+    static encryptMultiple(recipients: KeyRecipient[], payload: string | Buffer): any;
 }

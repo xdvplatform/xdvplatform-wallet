@@ -11,7 +11,7 @@ export declare class LogNodeSchema {
         log: string;
         $parent: string;
         eventType: string;
-        timestamp: number;
+        timestamp: any;
     };
     timestamp: number;
     eventType: keyof typeof EventType;

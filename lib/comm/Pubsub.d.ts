@@ -6,10 +6,10 @@ export declare class Pubsub {
     private peers;
     private peerId;
     constructor(ipld?: IpldClient);
-    static createTopic(): string;
+    static createTopic(): any;
     subscribeToTopic(topic: string): Promise<{
         waitForPeers: () => Promise<void>;
-        handler: import("rxjs").Observable<any>;
+        handler: any;
         send: (message: string) => any;
         unsubscribe: () => any;
     }>;

@@ -27,5 +27,5 @@ export declare class FEBuilder {
      * @param entry
      */
     rFE(entry: TypedRFE, ...sources: any[]): this;
-    toXml(): Promise<string>;
+    toXml(): Promise<any>;
 }

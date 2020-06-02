@@ -183,5 +183,5 @@ export declare class DGen {
      */
     gDatRec: Receptor;
     gAutXML?: AutorizadoDescargar[];
-    static toXmlObject(instance: DGen, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject(instance: DGen, parent: XMLBuilder): any;
 }

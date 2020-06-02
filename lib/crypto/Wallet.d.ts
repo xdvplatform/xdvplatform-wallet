@@ -16,7 +16,7 @@ export declare class Wallet {
     /**
      * Generates a mnemonic
      */
-    static generateMnemonic(): string;
+    static generateMnemonic(): any;
     /**
      * Unlocks a JSON keystore
      * @param keystore A JSON keystore
@@ -27,8 +27,8 @@ export declare class Wallet {
      * Derives a new child Wallet
      */
     deriveChild(sequence: number, derivation?: string): Wallet;
-    get path(): string;
-    get address(): Promise<string>;
+    get path(): any;
+    get address(): any;
     /**
      * Derives a wallet from a path
      */

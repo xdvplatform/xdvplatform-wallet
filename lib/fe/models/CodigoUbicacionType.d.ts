@@ -4,5 +4,5 @@ export declare class CodigoUbicacionType {
     dCorreg?: string;
     dDistr?: string;
     dProv?: string;
-    static toXmlObject(instance: CodigoUbicacionType, name: string, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject(instance: CodigoUbicacionType, name: string, parent: XMLBuilder): any;
 }

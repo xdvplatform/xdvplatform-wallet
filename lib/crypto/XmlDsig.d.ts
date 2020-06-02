@@ -7,6 +7,6 @@ export declare class XmlDsig {
      */
     static signFEDocument(signingKey: string, selfSignedCert: string, document: string): {
         xml: any;
-        json: import("xmlbuilder2/lib/interfaces").XMLSerializedAsObject | import("xmlbuilder2/lib/interfaces").XMLSerializedAsObjectArray;
+        json: any;
     };
 }

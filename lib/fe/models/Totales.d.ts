@@ -127,6 +127,6 @@ export declare class Totales implements gTotType {
     gPagPlazo?: VencimientoPago[];
     gRetenc?: Retencion;
     iPzPag: TiempoPago;
-    static toXmlObject?(instance: Totales, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject?(instance: Totales, parent: XMLBuilder): any;
 }
 export {};

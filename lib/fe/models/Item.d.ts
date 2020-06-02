@@ -99,5 +99,5 @@ export declare class Item {
     gCodItem?: CodigoItem;
     gITBMSItem: ITBMS;
     gISCItem?: ISC;
-    static toXmlObject?(instance: Item, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject?(instance: Item, parent: XMLBuilder): any;
 }

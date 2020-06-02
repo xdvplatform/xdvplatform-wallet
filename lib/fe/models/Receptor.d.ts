@@ -43,5 +43,5 @@ export declare class Receptor {
      *             B411: País del receptor de la FE no existente en la tabla
      */
     cPaisRecDesc?: string;
-    static toXmlObject(instance: Receptor, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject(instance: Receptor, parent: XMLBuilder): any;
 }

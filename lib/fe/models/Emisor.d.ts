@@ -10,5 +10,5 @@ export declare class Emisor {
     gUbiEm: CodigoUbicacionType;
     dTfnEm: string[];
     dCorElecEmi?: string[];
-    static toXmlObject?(instance: Emisor, parent: XMLBuilder): XMLBuilder;
+    static toXmlObject?(instance: Emisor, parent: XMLBuilder): any;
 }
