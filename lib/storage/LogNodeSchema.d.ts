@@ -7,8 +7,14 @@ export declare enum EventType {
     tag = 5
 }
 export declare class LogNodeSchema {
+    static create(parent: string, logType: EventType, log: string): LogNodeSchema & {
+        log: string;
+        $parent: string;
+        eventType: string;
+        timestamp: number;
+    };
     timestamp: number;
     eventType: keyof typeof EventType;
-    userDid: string;
     log: string;
+    $parent: string;
 }

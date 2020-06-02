@@ -9,7 +9,7 @@
 
 #### `xdvplatform-tools/crypto`
 
-- Supports for JWT, DID, JWE, XmlDsig
+- Supports for JWT, DID, JWE, XmlDsig, CMS (X509)
 - Algorithms included: `secp256k1`, `secp256r1`, `ed25519`, `rsa` and upcoming `bls`
 - `Keystore`, `HD Key`, `DER`, `JWK` and `PEM` support out of the box
 - Support for output to `LD Crypto Suite` key pairs for `ecdsa` and `ed25519`
@@ -33,6 +33,12 @@
 #### `xdvplatform-tools/storage`
 
 - XDV storage schemas for IPLD
+
+
+#### `xdvplatform-tools/comm`
+
+- IPNS PubSub
+
 
 @molekilla, Rogelio Morrell C. 
 Copyright 2020 May

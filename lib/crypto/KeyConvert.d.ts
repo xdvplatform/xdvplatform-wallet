@@ -3,7 +3,6 @@ import { ec, eddsa } from 'elliptic';
 import { JWK } from 'jose';
 import { LDCryptoTypes } from './LDCryptoTypes';
 import { PrivateKey } from "./../../src/did/PrivateKey";
-import { PublicKey } from '../did';
 export declare class X509Info {
     countryName: string;
     stateOrProvinceName: string;
@@ -61,30 +60,7 @@ export declare class KeyConvert {
         jwk: JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey;
         pem: any;
     };
-    static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate?: boolean): Promise<(PublicKey & {
-        id: string;
-        type: string;
-        publicKeyJwk: JWK.Key;
-    }) | (PublicKey & {
-        id: string;
-        type: string;
-        publicKeyPem: string;
-    }) | (PrivateKey & {
-        id: string;
-        type: string;
-        privateKeyBase58: any;
-        publicKeyBase58: any;
-    }) | (PrivateKey & {
-        id: string;
-        type: string;
-        privateKeyBase58: any;
-        publicKeyBase58: any;
-    }) | (PrivateKey & {
-        id: string;
-        type: string;
-        privateKeyBase58: any;
-        publicKeyBase58: any;
-    })>;
+    static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate?: boolean): (PrivateKey);
     /**
  * Returns private keys in JWK and PEM formats
  * @param kp Key pair

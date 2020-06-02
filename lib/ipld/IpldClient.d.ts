@@ -1,7 +1,25 @@
+import { DIDDocument } from '../did';
+export interface LogBlockReference {
+    cids: string[];
+    timestamp: number;
+}
+export interface DIDBlockReference {
+    cid: string;
+    tag: string;
+}
+export interface DocumentBlockReference {
+    cid: string;
+    tag: string;
+}
+export declare class LoggableNode {
+    cid: string;
+    cidLog: string;
+}
 export declare const generateRandomString: () => string;
 export declare class IpldClient {
     ipfsClient: any;
     private graph;
+    private signer;
     private ipfsPath;
     constructor();
     initialize(): Promise<void>;
@@ -27,5 +45,10 @@ export declare class IpldClient {
      * Creates a node in ipld
      * @param documentPayload An object payload
      */
-    createNode(documentPayload: object, cid?: string): Promise<any>;
+    createNode(documentPayload: object, cid?: string): string;
+    createDidNode(did: DIDDocument, tag: string): Promise<LoggableNode>;
+    appendDocumentNode(didCid: string, document: any, tag: string): Promise<LoggableNode>;
+    setSigner(signerFun: (a: string) => Promise<string>): void;
+    private updateRoot;
+    patchBlock(currentRef: string | null, did?: DIDBlockReference[], document?: DocumentBlockReference[], log?: LogBlockReference[]): Promise<string>;
 }
