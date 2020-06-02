@@ -4,7 +4,6 @@ import { filter } from 'rxjs/operators';
 import * as hash from 'hash.js';
 const delay = require('delay')
 
-const { waitForPeers } = require('./waitForPeers');
 
 export class Pubsub {
     private subject: Subject<any>;

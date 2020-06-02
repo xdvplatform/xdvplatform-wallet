@@ -7,6 +7,7 @@ import { KeyConvert, X509Info } from './KeyConvert';
 import { IpldClient } from './../ipld/IpldClient';
 import { LDCryptoTypes } from './LDCryptoTypes';
 import { DIDMethodXDV } from '../did/DIDMethodXDV';
+import { ethers } from 'ethers';
 let localStorage = {};
 const ipld = new IpldClient();
 const xdvMethod = new DIDMethodXDV(ipld);
@@ -87,7 +88,7 @@ describe("#wallet", function () {
 
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
-      const pem = KeyConvert.getES256K(wallet.getES256K()).pem;
+      const pem = (await KeyConvert.getES256K(wallet.getES256K())).pem;
       expect(!!pem).equal(true);
     }
     catch (e) {
@@ -105,7 +106,7 @@ describe("#wallet", function () {
 
     try {
       const wallet = await Wallet.unlock(keystore, opts.password);
-      const der = KeyConvert.getES256K(wallet.getES256K());
+      const der = await KeyConvert.getES256K(wallet.getES256K());
       expect(!!der).equal(true);
     }
     catch (e) {
@@ -125,8 +126,8 @@ describe("#wallet", function () {
       try {
         const wallet = await Wallet.unlock(keystore, opts.password);
         const key = wallet.getES256K();
-        const pem = KeyConvert.getES256K(key).pem;
-        const jwt = JWTService.sign(pem, {
+        const pem = (await KeyConvert.getES256K(key)).pem;
+        const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -147,7 +148,7 @@ describe("#wallet", function () {
 
 
       try {
-        const key = await Wallet.getRSA256Standalone();
+        const key = await await Wallet.getRSA256Standalone();
         const issuer: X509Info = {
           stateOrProvinceName: 'PA',
           organizationName: 'RM',
@@ -156,8 +157,8 @@ describe("#wallet", function () {
           countryName: 'Panama',
           localityName: 'Panama'
         };
-        const { jwk } = await KeyConvert.getX509RSA(key, issuer, issuer);
-        const jwt = JWTService.sign(jwk, {
+        const { jwk, pem } = await KeyConvert.getX509RSA(key, issuer, issuer);
+        const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -185,8 +186,8 @@ describe("#wallet", function () {
         const wallet = await Wallet.unlock(keystore, opts.password);
         const key = wallet.getP256();
 
-        const pem = KeyConvert.getP256(key).pem;
-        const jwt = JWTService.sign(pem, {
+        const pem = (await KeyConvert.getP256(key)).pem;
+        const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -214,8 +215,8 @@ describe("#wallet", function () {
         const wallet = await Wallet.unlock(keystore, opts.password);
         const key = wallet.getEd25519();
 
-        const pem = KeyConvert.getEd25519(key).pem;
-        const jwt = JWTService.sign(pem, {
+        const pem = (await KeyConvert.getEd25519(key)).pem;
+        const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
@@ -247,7 +248,7 @@ describe("#wallet", function () {
         const wallet = await Wallet.unlock(keystore, opts.password);
 
         const kp = wallet.getP256();
-        const kpJwk = KeyConvert.getP256(kp);
+        const kpJwk = await KeyConvert.getP256(kp);
 
         // Create LD Crypto Suite - p256 / Sepc256r1
         const ldCrypto = await KeyConvert
@@ -265,7 +266,7 @@ describe("#wallet", function () {
           });
 
         // Signing
-        const signed = await JWTService.sign(kpJwk.pem, {
+        const signed = await  JWTService.sign(kpJwk.pem, {
           ...did,
           testing: 'testing'
         }, {
@@ -278,8 +279,8 @@ describe("#wallet", function () {
         // console.log(signed);
         expect(!!signed).equal(true)
 
-        const encrypted = JOSEService.encrypt(kpJwk.jwk, signed);
-        expect(!!encrypted.ciphertext).equals(true)
+        const encrypted = await JOSEService.encrypt(kpJwk.jwk, signed);
+        expect(!!encrypted).equals(true)
 
       }
       catch (e) {
@@ -302,7 +303,7 @@ describe("#wallet", function () {
 
         // Create key
         const kp = wallet.getP256();
-        const kpJwk = KeyConvert.getP256(kp);
+        const kpJwk = await KeyConvert.getP256(kp);
 
         // Create LD Crypto Suite - p256 / Sepc256r1
         const ldCrypto = await KeyConvert
@@ -335,15 +336,15 @@ describe("#wallet", function () {
         });
 
         // Decoded
-        const decoded = JWTService.decodeWithSignature(signed);
+        const decoded = await JWTService.decodeWithSignature(signed);
         expect(!!decoded.signature).equal(true)
         expect(!!decoded.data).equal(true)
         expect(!!decoded.header).equal(true)
         expect(!!decoded.payload).equal(true)
-        // console.log(JWTService.decodeWithSignature(signed));
+        // console.log await(JWTService.decodeWithSignature(signed));
 
         // Encrypt JWT
-        const encrypted = JOSEService.encrypt(kpJwk.jwk, signed);
+        const encrypted = await JOSEService.encrypt(kpJwk.jwk, signed);
         // Stored decoded and encrypted
         localStorage['recentlyStoreCID'] = await ipld.createNode({
           ...did,
@@ -394,13 +395,13 @@ describe("#wallet", function () {
         // create new key pairs
         // const passphrase = 'password-to-store-pem-for-later-use';
         const kp = wallet.getP256();
-        const kpJwk = KeyConvert.getP256(kp);
+        const kpJwk = await KeyConvert.getP256(kp);
 
 
         // decrypt
-        const plaintext = JOSEService.decrypt(kpJwk.jwk, doc.encrypted);
-
-        const verified = JWTService.verify(kpJwk.pem, plaintext.toString(), 'receptor');
+        const obj = await JOSEService.decrypt(kpJwk.jwk, doc.encrypted);
+console.log((obj.plaintext.toString('utf8')))
+        const verified = await JWTService.verify(kpJwk.pem,(<Buffer> obj.plaintext).toString('utf8'), 'receptor');
         expect(!!verified.id).equals(true);
       }
       catch (e) {

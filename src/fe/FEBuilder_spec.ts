@@ -199,7 +199,7 @@ describe("FEBuilder", function () {
       const wallet = await Wallet.unlock(keystore, opts.password);
 
       const kp = wallet.getEd25519();
-      const kpJwk = KeyConvert.getEd25519(kp);
+      const kpJwk = await KeyConvert.getEd25519(kp);
 
       // Create IPFS key storage lock
       const session = await xdvMethod.createIpldSession(kpJwk.pem);

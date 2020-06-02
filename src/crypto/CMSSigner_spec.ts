@@ -20,7 +20,7 @@ describe("#cms", function () {
             countryName: 'Panama',
             localityName: 'Panama'
         };
-        const rsaKey = await Wallet.getRSA256Standalone();
+        const rsaKey = await await Wallet.getRSA256Standalone();
 
         const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
         const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem);

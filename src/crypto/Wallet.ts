@@ -1,12 +1,10 @@
-import KeyEncoder from 'key-encoder';
 import { ec, eddsa, } from 'elliptic';
 import { HDKey } from 'ethereum-cryptography/hdkey';
 import { ethers } from 'ethers';
 import { HDNode } from 'ethers/utils';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
-import { HDKeyT } from 'ethereum-cryptography/pure/hdkey';
 import { IsString, IsDefined, IsOptional } from 'class-validator';
-import { JWK } from 'jose';
+import { JWK } from 'node-jose';
 import {
     generateRandomSecretKey,
     deriveKeyFromMnemonic,
@@ -126,7 +124,7 @@ export class Wallet {
 
 
     public static getRSA256Standalone(len: number = 2048): Promise<JWK.RSAKey> {
-        return JWK.generate('RSA', len, {
+        return JWK.createKey('RSA', len, {
             alg: 'RS256',
             use:'sig'
         });

@@ -1,4 +1,5 @@
-import { JWE, JWK } from 'jose';
+import * as jose from 'node-jose';
+const  { JWT, JWK, JWE } = jose;
 
 
 export class KeyRecipient {
@@ -21,8 +22,11 @@ export class JOSEService {
      * @param key JWK key
      * @param payload String or Buffer payload
      */
-    public static encrypt(key: JWK.Key | any, payload: string | Buffer) {
-        const res = JWE.encrypt.flattened(payload, key, JOSEService.DEFAULT_PROTECTED);
+    public static encrypt(key: any, payload: string | Buffer) {
+        const res = JWE
+        .createEncrypt({ format: 'compact'}, key)
+        .update(payload)
+        .final();
         return res;
     }
 
@@ -32,19 +36,20 @@ export class JOSEService {
      * @param key JWK Key
      * @param ciphertext Encrypted content
      */
-    public static decrypt(key: JWK.Key, jwe: JWE.FlattenedJWE): Buffer {
-        const res = JWE.decrypt(jwe, key);
+    public static async decrypt(key: any, jwe: string): Buffer {
+        const res = JWE.createDecrypt(await JWK.asKey(key,'pem'))
+        .decrypt(jwe);
         return res;
     }
 
-    /**
-     * Encrypts payload with multiple JWK keys
-     * @param recipients JWK keys
-     * @param payload String or Buffer payload
-     */
-    public static encryptMultiple(recipients: KeyRecipient[], payload: string | Buffer) {
-        const encryptor = new JWE.Encrypt(payload, JOSEService.DEFAULT_PROTECTED, JOSEService.DEFAULT_UNPROTECTED);
-        recipients.map(key => encryptor.recipient(key.key, key.header));
-        return encryptor.encrypt('general');
-    }
+    // /**
+    //  * Encrypts payload with multiple JWK keys
+    //  * @param recipients JWK keys
+    //  * @param payload String or Buffer payload
+    //  */
+    // public static encryptMultiple(recipients: KeyRecipient[], payload: string | Buffer) {
+    //     const encryptor = new JWE.Encrypt(payload, JOSEService.DEFAULT_PROTECTED, JOSEService.DEFAULT_UNPROTECTED);
+    //     recipients.map(key => encryptor.recipient(key.key, key.header));
+    //     return encryptor.encrypt('general');
+    // }
 }
