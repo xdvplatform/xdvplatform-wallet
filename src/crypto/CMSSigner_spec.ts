@@ -23,7 +23,7 @@ describe("#cms", function () {
         const rsaKey = await await Wallet.getRSA256Standalone();
 
         const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-        const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem);
+        const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
         try {
             const res = CMSSigner.sign(selfSignedCert,
                 rsaKeyExports.pem,

@@ -69,7 +69,7 @@ export class Wallet {
     public deriveChild(sequence: number, derivation = `m/44'/60'/0'/0`): Wallet {
         const masterKey = HDNode.fromMnemonic(this.ethersWallet.mnemonic);
         const hdnode = masterKey.derivePath(`${derivation}/${sequence}`);
-        console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
+    //    console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
         const ethersWallet = new ethers.Wallet(hdnode);
         return new Wallet(ethersWallet);
     }

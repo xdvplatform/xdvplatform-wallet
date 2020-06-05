@@ -159,7 +159,7 @@ describe("FEBuilder", function () {
     const rsaKey = await Wallet.getRSA256Standalone();
 
     const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
     try {
       const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
       expect(!!signedDocuments.json).equals(true)
@@ -183,7 +183,7 @@ describe("FEBuilder", function () {
     const rsaKey = await Wallet.getRSA256Standalone();
 
     const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
     try {
       const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
       expect(!!signedDocuments.json).equals(true)

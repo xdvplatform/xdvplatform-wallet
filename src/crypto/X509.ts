@@ -1,12 +1,13 @@
 import * as forge from 'node-forge';
 import * as crypto from 'crypto';
+import { X509Info } from './KeyConvert';
 export class X509 {
 
     /**
      * Creates a self signed certificate generated from JWK RSA with PEM format
      * @param rsaPEM PEM formatted RSA Key
      */
-    public static createSelfSignedCertificateFromRSA(rsaPEM: string) {
+    public static createSelfSignedCertificateFromRSA(rsaPEM: string, info: X509Info) {
         const cert = forge.pki.createCertificate();
         cert.publicKey = forge.pki.publicKeyFromPem(
             crypto.createPublicKey(rsaPEM).export({
@@ -26,22 +27,22 @@ export class X509 {
         cert.validity.notAfter.setFullYear(cert.validity.notBefore.getFullYear() + 1);
         const attrs = [{
             name: 'commonName',
-            value: 'example.org'
+            value: info.commonName
         }, {
             name: 'countryName',
-            value: 'US'
+            value: info.countryName
         }, {
             shortName: 'ST',
-            value: 'Virginia'
+            value: info.stateOrProvinceName
         }, {
             name: 'localityName',
-            value: 'Blacksburg'
+            value: info.localityName
         }, {
             name: 'organizationName',
-            value: 'Test'
+            value: info.organizationName
         }, {
             shortName: 'OU',
-            value: 'Test'
+            value: info.organizationalUnitName
         }];
         cert.setSubject(attrs);
         // alternatively set subject from a csr
