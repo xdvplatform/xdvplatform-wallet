@@ -1,1 +1,0 @@
-{"version":3,"file":"DocumentNodeSchema.js","sourceRoot":"","sources":["../../src/storage/DocumentNodeSchema.ts"],"names":[],"mappings":";;;AAOA,MAAa,kBAAkB;IAGpB,MAAM,CAAC,MAAM,CAAC,GAAW,EAAE,QAAa,EAAE,GAAW;QACxD,OAAO,MAAM,CAAC,MAAM,CAAC,IAAI,kBAAkB,EAAE,kCACtC,QAAQ,KACX,MAAM,EAAE,GAAG,EACX,GAAG,IACL,CAAC;IACP,CAAC;CAKJ;AAdD,gDAcC"}
