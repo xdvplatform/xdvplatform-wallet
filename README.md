@@ -450,16 +450,17 @@ Decrypts a cipher
     // decrypt
     const obj = await JOSEService.decrypt(kpJwk.jwk, doc.encrypted);
     const verified = await JWTService.verify(kpJwk.pem,(<Buffer> obj.plaintext).toString('utf8'), 'receptor');
+
+
 ```
 
-####  XmlDsig (FE specific)
 
-Signs FE XML Documents
+####  X509
 
-`XmlDsig.signFEDocument`
+`X509.createSelfSignedCertificateFromRSA`
 
-Creates a self signed certification from a RSA key pair
 
+Creates a self sign certificate from a RSA key pair
 
 ```typescript
     const issuer: X509Info = {
@@ -478,11 +479,127 @@ Creates a self signed certification from a RSA key pair
 ```
 
 
+####  XmlDsig (FE specific)
+
+Signs FE XML Documents
+
+`XmlDsig.signFEDocument`
+
+Signs a Factura Electronica de Panama document
+
+```typescript
+    const issuer: X509Info = {
+        stateOrProvinceName: 'PA',
+        organizationName: 'RM',
+        organizationalUnitName: 'Engineering',
+        commonName: 'Rogelio Morrell',
+        countryName: 'Panama',
+        localityName: 'Panama'
+    };
+    const rsaKey = await Wallet.getRSA256Standalone();
+
+    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
+```
+
+####  CMSSigner
+
+Signs CMS Documents
+
+`CMSSigner.sign`
+
+Signs a CMS document
+
+```typescript
+    const issuer: X509Info = {
+        stateOrProvinceName: 'PA',
+        organizationName: 'RM',
+        organizationalUnitName: 'Engineering',
+        commonName: 'Rogelio Morrell',
+        countryName: 'Panama',
+        localityName: 'Panama'
+    };
+    const rsaKey = await Wallet.getRSA256Standalone();
+
+    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const res = CMSSigner.sign(selfSignedCert,
+        rsaKeyExports.pem,
+        fs.readFileSync(__dirname + '/fixtures/cms.pdf'));
+```
+
 #### `did`
 
 - Supports for basic DID JSON schemas
 - `DID JWT` signing and validation using `xdvplatform-tools/crypto` API
 - Includes `did-method-xdv` with resolver
+
+#### API
+
+####  DIDMethodXDV - XDV DID Method
+
+XDV DID method is based on IPLD. Before using it,  it needs to be initialize. After initializing, generate
+a new session key (the DID key) and then use `DIDDocumentBuilder` to create a DID document.
+
+`Usage`
+
+```typescript
+    const ipld = new IpldClient();
+    const xdvMethod = new DIDMethodXDV(ipld);
+
+
+    // create ipld instance
+    await ipld.initialize();
+
+    // ....
+
+    const kp = wallet.getP256();
+    const kpJwk = await KeyConvert.getP256(kp);
+
+    // Create LD Crypto Suite - p256 / Sepc256r1
+    const ldCrypto = await KeyConvert
+    .createLinkedDataJsonFormat(LDCryptoTypes.Sepc256r1, kpJwk.ldSuite);
+
+    // Create IPFS key storage lock
+    const session = await xdvMethod.createIpldSession(kpJwk.pem);
+
+    // Create DID document with an did-ipid based issuer
+    const did = await DIDDocumentBuilder
+    .createDID({
+        issuer: session.key,
+        verificationKeys: [ldCrypto.toPublicKey()],
+        authenticationKeys: [ldCrypto.toAuthorizationKey()]
+    });
+
+
+    // Always store DID in IPLD
+    cid = await ipld.createNode({
+        ...did,
+    });
+
+```
+
+Resolving is a different, you'll ned both CID and DID.
+
+```typescript
+    // get document with a CID and DID
+    const resolver = await xdvMethod.getResolver(cid);
+    const doc = await resolver.xdv(did);
+
+```
+
+
+
+`Wallet.createHDWallet`
+
+Creates a new random HD Wallet
+
+```typescript
+  const keystore = await Wallet.createHDWallet({ password: 'password123' });
+```
+
+
 
 #### `fe`
 

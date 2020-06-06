@@ -66,6 +66,7 @@
     "slip39": "^0.1.7",
     "solido-provider-ethers": "^1.1.1",
     "web-xml-crypto": "^1.5.0",
+    "webcrypto": "^0.1.1",
     "xmlbuilder2": "^2.1.2"
   }
 }

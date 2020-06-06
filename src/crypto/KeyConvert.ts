@@ -1,13 +1,13 @@
-import { ec, eddsa } from 'elliptic';
-import { decomposePrivateKey, composePrivateKey } from 'crypto-key-composer';
 import * as jose from 'node-jose';
-import { LDCryptoTypes } from './LDCryptoTypes';
-import { PrivateKey } from "./../../src/did/PrivateKey";
-import { ethers } from 'ethers';
 import bs58 from 'bs58';
+import { composePrivateKey, decomposePrivateKey } from 'crypto-key-composer';
+import { ec, eddsa } from 'elliptic';
+import { ethers } from 'ethers';
+import { LDCryptoTypes } from './LDCryptoTypes';
+import { PrivateKey } from './../../src/did/PrivateKey';
 import { PublicKey } from '../did';
 const Rasha = require('rasha');
-const  { JWT, JWK } = jose;
+const { JWT, JWK } = jose;
 const jwkToPem = require('jwk-to-pem');
 const ECKey = require('ec-key');
 
@@ -179,10 +179,10 @@ export class KeyConvert {
             }
         }, options);
 
-       /// const keys = new ECKey(composePemKey, 'pem');
+        /// const keys = new ECKey(composePemKey, 'pem');
         return {
             der: composeDerKey,
-          //  jwk: keys.toJSON(),
+            //  jwk: keys.toJSON(),
             pem: composePemKey,
         };
     }

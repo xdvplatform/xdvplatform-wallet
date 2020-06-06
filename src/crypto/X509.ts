@@ -1,5 +1,5 @@
+import * as crypto from 'webcrypto';
 import * as forge from 'node-forge';
-import * as crypto from 'crypto';
 import { X509Info } from './KeyConvert';
 export class X509 {
 
