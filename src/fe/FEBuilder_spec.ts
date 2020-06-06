@@ -215,7 +215,7 @@ describe("FEBuilder", function () {
     };
     const rsaKey = await Wallet.getRSA256Standalone();
 
-    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey.toJSON());
+    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
     const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
       rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
     try {
