@@ -1,46 +1,46 @@
 import moment from 'moment';
 import {
-    BlockSchema,
-    DIDNodeSchema,
-    DocumentNodeSchema,
-    EventType,
-    LogNodeSchema
-    } from '../storage';
+  BlockSchema,
+  DIDNodeSchema,
+  DocumentNodeSchema,
+  EventType,
+  LogNodeSchema
+  } from '../storage';
 import { CatBienes } from './models/CatBienes';
 import { DescBienes } from './models/DescBienes';
 import {
-    Destino,
-    DGen,
-    EntregaCafe,
-    EnvioContenedorFE,
-    FormaPago,
-    FormularioCafe,
-    Item,
-    RucType,
-    TasaITBMS,
-    TiempoPago,
-    TipoAmbiente,
-    TipoDocumento,
-    TipoEmision,
-    TipoGeneracion,
-    TipoNaturalezaOperacion,
-    TipoOperacion,
-    TipoReceptor,
-    TipoRuc,
-    TipoTransaccionVenta,
-    Totales
-    } from './models';
+  Destino,
+  DGen,
+  EntregaCafe,
+  EnvioContenedorFE,
+  FormaPago,
+  FormularioCafe,
+  Item,
+  RucType,
+  TasaITBMS,
+  TiempoPago,
+  TipoAmbiente,
+  TipoDocumento,
+  TipoEmision,
+  TipoGeneracion,
+  TipoNaturalezaOperacion,
+  TipoOperacion,
+  TipoReceptor,
+  TipoRuc,
+  TipoTransaccionVenta,
+  Totales
+  } from './models';
 import { DIDDocumentBuilder, DIDMethodXDV } from '../did';
 import { eddsa } from 'elliptic';
 import { expect } from 'chai';
 import { FEBuilder, Plantillas } from './FEBuilder';
 import { IpldClient } from '../ipld';
 import {
-    KeyConvert,
-    Wallet,
-    X509Info,
-    XmlDsig
-    } from '../crypto';
+  KeyConvert,
+  Wallet,
+  X509Info,
+  XmlDsig
+  } from '../crypto';
 import { LDCryptoTypes, X509 } from '../crypto';
 import { Paises } from './models/Paises';
 import { Ubicaciones } from './models/Ubicaciones';
@@ -190,10 +190,11 @@ describe("FEBuilder", function () {
     };
     const rsaKey = await Wallet.getRSA256Standalone();
 
-    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+      rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
     try {
-      const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
+      const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pemAsPrivate, selfSignedCert, latestFEDocument);
       expect(!!signedDocuments.json).equals(true)
       expect(!!signedDocuments.xml).equals(true)
     } catch (e) {
@@ -214,10 +215,11 @@ describe("FEBuilder", function () {
     };
     const rsaKey = await Wallet.getRSA256Standalone();
 
-    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey.toJSON());
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+      rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
     try {
-      const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
+      const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pemAsPrivate, selfSignedCert, latestFEDocument);
       expect(!!signedDocuments.json).equals(true)
       expect(!!signedDocuments.xml).equals(true)
 
@@ -272,7 +274,7 @@ describe("FEBuilder", function () {
   });
 
   it("should be able to get the IPLD logs by cid", async function () {
-   // await ipld.initialize();
+    // await ipld.initialize();
     try {
 
       const block = localStorage['blockCid'];
@@ -291,7 +293,7 @@ describe("FEBuilder", function () {
         testing: true
       });
 
-      
+
       const blockCid = await ipld.patchBlock(block,
         [{ cid: newnode as string, tag: 'newnode' }],
       );

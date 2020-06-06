@@ -22,7 +22,7 @@ export class X509Info {
 
 export class KeyConvert {
 
-    public static async getX509RSA(kp: JWK.RSAKey, issuer: X509Info, subject: X509Info, passphrase?: string) {
+    public static async getX509RSA(kp: JWK.RSAKey, passphrase?: string) {
 
 
         let jwk = kp;
@@ -34,7 +34,8 @@ export class KeyConvert {
         return {
             jwk,
             der: undefined,
-            pem: await Rasha.export({ jwk: kp.toJSON(true) }),
+            pemAsPrivate: await Rasha.export({ jwk: kp.toJSON(true) }),
+            pemAsPublic: await Rasha.export({ jwk: kp.toJSON() }),
             ldSuite,
         };
     }

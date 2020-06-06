@@ -1,8 +1,15 @@
+import {
+    CMSSigner,
+    KeyConvert,
+    Wallet,
+    X509,
+    X509Info,
+    XmlDsig
+    } from '../crypto';
 import { expect } from 'chai';
 
 
 
-import { XmlDsig, Wallet, KeyConvert, X509, CMSSigner, X509Info } from '../crypto';
 const SignedXml = require('web-xml-crypto').SignedXml
     , fs = require('fs')
 
@@ -22,11 +29,12 @@ describe("#cms", function () {
         };
         const rsaKey = await await Wallet.getRSA256Standalone();
 
-        const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey, issuer, issuer);
-        const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+        const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
+        const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+            rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
         try {
             const res = CMSSigner.sign(selfSignedCert,
-                rsaKeyExports.pem,
+                rsaKeyExports.pemAsPrivate,
                 fs.readFileSync(__dirname + '/fixtures/cms.pdf'));
             expect(!!res.signed).equals(true);
         } catch (e) {

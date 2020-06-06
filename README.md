@@ -203,12 +203,12 @@ Converts a ES256K key pair. Available exports: JWK, DER, PEM and LD.
 
 `KeyConvert.getRSA`
 
-Converts a RSA key pair. Available exports: JWK and PEM.
+Converts a RSA key pair. Available exports: JWK and PEM as pemAsPrivate and pemAsPublic.
 
 
 ```typescript
    const key = await Wallet.getRSA256Standalone();
-    const pem = (await KeyConvert.getRSA(key)).pem;
+    const pem = (await KeyConvert.getRSA(key)).pemAsPrivate;
 ```
 
 `KeyConvert.getEd25519`
@@ -474,7 +474,8 @@ Creates a self sign certificate from a RSA key pair
     const rsaKey = await Wallet.getRSA256Standalone();
 
     const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+      rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
     const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
 ```
 
@@ -499,8 +500,9 @@ Signs a Factura Electronica de Panama document
     const rsaKey = await Wallet.getRSA256Standalone();
 
     const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
-    const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pem, selfSignedCert, latestFEDocument);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+      rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
+    const signedDocuments = await XmlDsig.signFEDocument(rsaKeyExports.pemAsPrivate, selfSignedCert, latestFEDocument);
 ```
 
 ####  CMSSigner
@@ -523,9 +525,10 @@ Signs a CMS document
     const rsaKey = await Wallet.getRSA256Standalone();
 
     const rsaKeyExports = await KeyConvert.getX509RSA(rsaKey);
-    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(rsaKeyExports.pem, issuer);
+    const selfSignedCert = X509.createSelfSignedCertificateFromRSA(
+      rsaKeyExports.pemAsPrivate, rsaKeyExports.pemAsPublic, issuer);
     const res = CMSSigner.sign(selfSignedCert,
-        rsaKeyExports.pem,
+        rsaKeyExports.pemAsPrivate,
         fs.readFileSync(__dirname + '/fixtures/cms.pdf'));
 ```
 

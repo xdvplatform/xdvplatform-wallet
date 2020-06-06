@@ -1,19 +1,17 @@
-import * as crypto from 'webcrypto';
 import * as forge from 'node-forge';
 import { X509Info } from './KeyConvert';
+const ab2str = require("arraybuffer-to-string");
+
 export class X509 {
 
     /**
      * Creates a self signed certificate generated from JWK RSA with PEM format
      * @param rsaPEM PEM formatted RSA Key
      */
-    public static createSelfSignedCertificateFromRSA(rsaPEM: string, info: X509Info) {
+    public static createSelfSignedCertificateFromRSA(rsaPEMPrivate: string, rsaPEMPublic: string, info: X509Info) {
         const cert = forge.pki.createCertificate();
         cert.publicKey = forge.pki.publicKeyFromPem(
-            crypto.createPublicKey(rsaPEM).export({
-                type: 'pkcs1',
-                format: 'pem'
-            })
+            ab2str(rsaPEMPublic)
         );
         // alternatively set public key from a csr
         //cert.publicKey = csr.publicKey;
@@ -103,15 +101,7 @@ export class X509 {
         cert.setExtensions(extensions);
         */
         // self-sign certificate
-        const pvk = crypto.createPrivateKey({
-            key: rsaPEM,
-            type: 'pkcs1',
-            format: 'pem'
-        })
-        .export({
-            type: 'pkcs1',
-            format: 'pem'
-        });
+        const pvk = rsaPEMPrivate;
         cert.sign(forge.pki.privateKeyFromPem(
             pvk
         ));

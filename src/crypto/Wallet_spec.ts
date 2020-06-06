@@ -157,8 +157,8 @@ describe("#wallet", function () {
           countryName: 'Panama',
           localityName: 'Panama'
         };
-        const { jwk, pem } = await KeyConvert.getX509RSA(key, issuer, issuer);
-        const jwt = await JWTService.sign(pem, {
+        const { jwk, pemAsPrivate } = await KeyConvert.getX509RSA(key);
+        const jwt = await JWTService.sign(pemAsPrivate, {
           testing: 'testing'
         }, {
           iat: (new Date(2020, 10, 10)).getTime(),
