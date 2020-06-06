@@ -1,13 +1,13 @@
-import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder'
-import { Wallet } from './Wallet';
-import { expect } from 'chai';
-import { JWTService } from './JWTService';
-import { JOSEService } from './JOSEService';
-import { KeyConvert, X509Info } from './KeyConvert';
-import { IpldClient } from './../ipld/IpldClient';
-import { LDCryptoTypes } from './LDCryptoTypes';
+import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder';
 import { DIDMethodXDV } from '../did/DIDMethodXDV';
 import { ethers } from 'ethers';
+import { expect } from 'chai';
+import { IpldClient } from './../ipld/IpldClient';
+import { JOSEService } from './JOSEService';
+import { JWTService } from './JWTService';
+import { KeyConvert, X509Info } from './KeyConvert';
+import { LDCryptoTypes } from './LDCryptoTypes';
+import { Wallet } from './Wallet';
 let localStorage = {};
 const ipld = new IpldClient();
 const xdvMethod = new DIDMethodXDV(ipld);

@@ -1,18 +1,50 @@
-import { expect } from 'chai';
-import { X509, LDCryptoTypes } from '../crypto';
-import { FEBuilder, Plantillas } from './FEBuilder';
-import { Destino, FormularioCafe, TipoAmbiente, TipoEmision, TipoDocumento, TipoNaturalezaOperacion, TipoOperacion, EnvioContenedorFE, TipoGeneracion, TipoTransaccionVenta, RucType, TipoRuc, EntregaCafe, TipoReceptor, DGen, TiempoPago, FormaPago, Item, Totales, TasaITBMS } from './models';
-import { Ubicaciones } from './models/Ubicaciones';
-import { Unidades } from './models/Unidades';
+import moment from 'moment';
+import {
+    BlockSchema,
+    DIDNodeSchema,
+    DocumentNodeSchema,
+    EventType,
+    LogNodeSchema
+    } from '../storage';
 import { CatBienes } from './models/CatBienes';
 import { DescBienes } from './models/DescBienes';
-import { Paises } from './models/Paises';
-import { XmlDsig, Wallet, KeyConvert, X509Info } from '../crypto';
+import {
+    Destino,
+    DGen,
+    EntregaCafe,
+    EnvioContenedorFE,
+    FormaPago,
+    FormularioCafe,
+    Item,
+    RucType,
+    TasaITBMS,
+    TiempoPago,
+    TipoAmbiente,
+    TipoDocumento,
+    TipoEmision,
+    TipoGeneracion,
+    TipoNaturalezaOperacion,
+    TipoOperacion,
+    TipoReceptor,
+    TipoRuc,
+    TipoTransaccionVenta,
+    Totales
+    } from './models';
 import { DIDDocumentBuilder, DIDMethodXDV } from '../did';
-import { DIDNodeSchema, DocumentNodeSchema, LogNodeSchema, EventType, BlockSchema } from '../storage';
-import { IpldClient } from '../ipld';
-import moment from 'moment';
 import { eddsa } from 'elliptic';
+import { expect } from 'chai';
+import { FEBuilder, Plantillas } from './FEBuilder';
+import { IpldClient } from '../ipld';
+import {
+    KeyConvert,
+    Wallet,
+    X509Info,
+    XmlDsig
+    } from '../crypto';
+import { LDCryptoTypes, X509 } from '../crypto';
+import { Paises } from './models/Paises';
+import { Ubicaciones } from './models/Ubicaciones';
+import { Unidades } from './models/Unidades';
 
 const ipld = new IpldClient();
 const xdvMethod = new DIDMethodXDV(ipld);
