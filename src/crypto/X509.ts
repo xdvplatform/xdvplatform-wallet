@@ -11,8 +11,7 @@ export class X509 {
     public static createSelfSignedCertificateFromRSA(rsaPEMPrivate: string, rsaPEMPublic: string, info: X509Info) {
         const cert = forge.pki.createCertificate();
         cert.publicKey = forge.pki.publicKeyFromPem(
-            ab2str(rsaPEMPublic)
-        );
+            rsaPEMPublic);
         // alternatively set public key from a csr
         //cert.publicKey = csr.publicKey;
         // NOTE: serialNumber is the hex encoded value of an ASN.1 INTEGER.
