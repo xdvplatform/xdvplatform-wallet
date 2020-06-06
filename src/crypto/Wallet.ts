@@ -34,7 +34,7 @@ export class Wallet {
      * Create HD Wallet
      * @param password password to encrypt keystore
      */
-    public static async createHDWallet(obj: WalletOptions) {
+    public static createHDWallet(obj: WalletOptions) {
         // ethers
         const { password, mnemonic } = obj;       
         let wallet;
@@ -43,7 +43,7 @@ export class Wallet {
         } else {
             wallet = ethers.Wallet.fromMnemonic(mnemonic);
         }
-        return await wallet.encrypt(password);
+        return wallet.encrypt(password);
     }
 
     /**
