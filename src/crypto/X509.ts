@@ -3,7 +3,7 @@ import { X509Info } from './KeyConvert';
 const ab2str = require("arraybuffer-to-string");
 
 export class X509 {
-
+// missing class validator
     /**
      * Creates a self signed certificate generated from JWK RSA with PEM format
      * @param rsaPEM PEM formatted RSA Key

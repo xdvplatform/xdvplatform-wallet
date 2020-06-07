@@ -253,7 +253,8 @@ describe("FEBuilder", function () {
       });
       // DID
       let didNode = await ipld.createDidNode(did, 'my-ed25519-key');
-
+      const published = await ipld.ipfsClient.name.publish(didNode.cid);
+      console.log(published)
       // append json 
       let documentNode = await ipld.appendDocumentNode(didNode.cid, signedDocuments.json, 'mydoc');
 

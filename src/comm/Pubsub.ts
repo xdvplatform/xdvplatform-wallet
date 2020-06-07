@@ -1,7 +1,7 @@
+import * as hash from 'hash.js';
+import { filter } from 'rxjs/operators';
 import { IpldClient } from '../ipld';
 import { Subject } from 'rxjs';
-import { filter } from 'rxjs/operators';
-import * as hash from 'hash.js';
 const delay = require('delay')
 
 
@@ -82,9 +82,9 @@ export class Pubsub {
     /**
      * Initializes pubsub
      */
-    public async initialize() {
+    public async initialize(config: any = null) {
         this.subject = new Subject();
-        await this.ipld.initialize();
+        await this.ipld.initialize(config);
         const peer = await this.ipld.ipfsClient.id();
         this.address = peer.addresses
             .find(ma => ma.nodeAddress().address === '127.0.0.1')

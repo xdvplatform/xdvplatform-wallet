@@ -1,6 +1,12 @@
-import { DIDNodeSchema, DocumentNodeSchema, LogNodeSchema, EventType, BlockSchema } from '../storage';
-import { DIDDocument } from '../did';
 import moment from 'moment';
+import {
+    BlockSchema,
+    DIDNodeSchema,
+    DocumentNodeSchema,
+    EventType,
+    LogNodeSchema
+    } from '../storage';
+import { DIDDocument } from '../did';
 
 export interface LogBlockReference{
     cids: string[];
@@ -42,12 +48,12 @@ export class IpldClient {
 
     }
 
-    public async initialize() {
+    public async initialize(config: any = null) {
         this.ipfsPath = '/tmp/ipfs' + Math.random()
         const ipfs = IPFS.create({
             pass: "01234567890123456789",
             repo: this.ipfsPath,
-            config: {
+            config: config || {
                 Addresses: {
                     Swarm: [
                         "/dns4/star-signal.cloud.ipfs.team/wss/p2p-webrtc-star",

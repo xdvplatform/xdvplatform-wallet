@@ -61,7 +61,7 @@ export class KeyConvert {
             keyData: {
                 x: kp.getPublic().getX().toArrayLike(Buffer),
                 y: kp.getPublic().getY().toArrayLike(Buffer),
-                d: kp.getPrivate().toBuffer()
+                d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
 
@@ -75,7 +75,7 @@ export class KeyConvert {
             keyData: {
                 x: kp.getPublic().getX().toArrayLike(Buffer),
                 y: kp.getPublic().getY().toArrayLike(Buffer),
-                d: kp.getPrivate().toBuffer()
+                d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
 
@@ -83,7 +83,7 @@ export class KeyConvert {
         const ldSuite = {
             publicKeyJwk: JSON.stringify(keys, null, 2),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
-            privBytes: () => kp.getPrivate().toBuffer()
+            privBytes: () => kp.getPrivate().toArrayLike(Buffer)
         };
 
         return {
@@ -115,7 +115,7 @@ export class KeyConvert {
             keyData: {
                 x: kp.getPublic().getX().toArrayLike(Buffer),
                 y: kp.getPublic().getY().toArrayLike(Buffer),
-                d: kp.getPrivate().toBuffer()
+                d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
 
@@ -129,7 +129,7 @@ export class KeyConvert {
             keyData: {
                 x: kp.getPublic().getX().toArrayLike(Buffer),
                 y: kp.getPublic().getY().toArrayLike(Buffer),
-                d: kp.getPrivate().toBuffer()
+                d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
 
@@ -137,7 +137,7 @@ export class KeyConvert {
         const ldSuite = {
             publicKeyJwk: JSON.stringify(keys, null, 2),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
-            privBytes: () => kp.getPrivate().toBuffer()
+            privBytes: () => kp.getPrivate().toArrayLike(Buffer)
         };
 
         return {
@@ -190,7 +190,7 @@ export class KeyConvert {
 
 
     public static async createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false): (PrivateKey) {
-        const id = Buffer.from(ethers.utils.randomBytes(10000)).toString('base64');
+        const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
         switch (algorithm) {
 
             case LDCryptoTypes.JWK:
