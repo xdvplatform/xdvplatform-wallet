@@ -99,19 +99,17 @@ export class Wallet {
         return keypair;
     }
 
+
     public getP256(): ec.KeyPair {
         const { HDKey } = require('hdkey-secp256r1');
-        const p256 = new ec('p256');
-       // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.mnemonic).extendedKey);
-        const key = HDKey.fromMasterSeed(Buffer.from(HDNode.mnemonicToSeed(this.mnemonic), 'hex'))
-        const keypair = p256.keyFromPrivate(key.privateKey);
+        const p256 = new ec('p256');        
+        const keypair = p256.keyFromPrivate(HDNode.fromMnemonic(this.mnemonic).privateKey);
         return keypair;
     }
 
     public getES256K(): ec.KeyPair {
         const ES256k = new ec('secp256k1');
-        const key = HDKey.fromMasterSeed(Buffer.from(HDNode.mnemonicToSeed(this.mnemonic), 'hex'))
-        const keypair = ES256k.keyFromPrivate(key.privateKey);
+        const keypair = ES256k.keyFromPrivate(HDNode.fromMnemonic(this.mnemonic).privateKey);
         return keypair;
     }
     
