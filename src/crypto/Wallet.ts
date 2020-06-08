@@ -101,7 +101,6 @@ export class Wallet {
 
 
     public getP256(): ec.KeyPair {
-        const { HDKey } = require('hdkey-secp256r1');
         const p256 = new ec('p256');        
         const keypair = p256.keyFromPrivate(HDNode.fromMnemonic(this.mnemonic).privateKey);
         return keypair;
