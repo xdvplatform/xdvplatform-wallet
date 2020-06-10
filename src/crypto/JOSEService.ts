@@ -22,12 +22,12 @@ export class JOSEService {
      * @param key JWK key
      * @param payload String or Buffer payload
      */
-    public static encrypt(key: any, payload: string | Buffer) {
-        const res = JWE
-        .createEncrypt({ format: 'compact'}, key)
+    public static encrypt(keys: JWK.Key[], payload: string | Buffer) {
+        return JWE
+        .createEncrypt([...keys])
         .update(payload)
         .final();
-        return res;
+
     }
 
 

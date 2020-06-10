@@ -1,3 +1,4 @@
+import keystore from '@jibrelnetwork/jwallet-web-keystore';
 import { ethers } from 'ethers';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
 import { HDKey } from 'ethereum-cryptography/hdkey';
@@ -27,9 +28,37 @@ export class Wallet {
 
 
     constructor(private mnemonic: string,  private ethersWallet: ethers.Wallet) {
-
     }
 
+
+
+
+    public  getPrivateKey(store: any, id: string, password: string, session = null) {
+        let pvk ='';
+        if (session && session.get(id)){
+            return session.get(id);
+        }
+        pvk = keystore.getPrivateKey(store, id, password);
+        session.set(id, pvk);
+        return pvk;
+    }
+
+    public static addMnemonicToKeystore(store:any, name: string, mnemonic: string, password: string) {
+        return keystore.createWallet(store, {
+          mnemonic,
+          name,  
+          password
+        });
+    }
+
+
+    public static addPrivateToKeystore(store:any, name: string, privateKey: string, password: string) {
+        return keystore.createWallet(store, {
+            name,
+            password,
+            privateKey,  
+          });
+    }
     /**
      * Create HD Wallet
      * @param password password to encrypt keystore
@@ -61,6 +90,19 @@ export class Wallet {
     public static async unlock(keystore: string, password: string): Wallet {
         const ethersWallet = await ethers.Wallet.fromEncryptedJson(keystore, password);
         return new Wallet(ethersWallet.mnemonic, ethersWallet);
+    }
+
+    static async browserUnlock(keystore: any, password: string) {
+        try {
+            const base = await ethers.Wallet.fromEncryptedJson(
+                keystore,
+                password
+            );
+            return new Wallet(base.mnemonic, base);
+        } catch (e) {
+            console.log(e);
+        }
+        return null;
     }
 
     /**

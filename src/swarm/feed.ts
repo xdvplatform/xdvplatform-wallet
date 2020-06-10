@@ -4,6 +4,7 @@ import { createKeyPair, sign } from '@erebos/secp256k1';
 import { forkJoin } from 'rxjs';
 import { getFeedTopic } from '@erebos/bzz-feed/esm/feed';
 import { pubKeyToAddress } from '@erebos/keccak256';
+// @ts-ignore
 
 const PromiseFileReader = require("promise-file-reader");
 
@@ -13,24 +14,20 @@ const BZZ_URL = "https://swarm-gateways.net/";
 export class SwarmFeed {
     bzz: BzzBrowser;
     bzzFeed: BzzFeed;
-    user: string;
-    constructor(private signer: any,
-        private publicKeyAsArray: any
-        , private url: string = BZZ_URL) { }
+    constructor(private signer: any, public user: string,
+        private url: string = BZZ_URL) { }
 
 
     initialize() {
-        const user = pubKeyToAddress(this.publicKeyAsArray);
         const bzz = new BzzBrowser({ url: this.url });
         const bzzFeed = new BzzFeed({ bzz, signBytes: this.signer })
 
         this.bzz = bzz;
         this.bzzFeed = bzzFeed;
-        this.user = user;
     }
-    async   publishDirectory({ name, defaultPath, contents, options = {}}: {
+    async   publishDirectory({ name, defaultPath, contents, options = {} }: {
         name: string;
-        contents: File[];
+        contents: any[];
         defaultPath: string;
         options?: any;
     }) {
@@ -97,6 +94,7 @@ export class SwarmFeed {
 
     toSwarmPayload(o: object) {
         return Object.keys(o).map(i => {
+           // @ts-ignore
             return new File([Buffer.from(JSON.stringify(o[i]))], i, {
                 type: 'application/json',
             });

@@ -236,6 +236,21 @@ describe("#wallet", function () {
 
   });
   describe("#encryption", function () {
+    xit("when encrypting keys to PEM, should be able to decrypt and convert to JWK", async function () {
+
+      const mnemonic = Wallet.generateMnemonic();
+      const opts = { mnemonic, password: '123password' };
+      const keystore = await Wallet.createHDWallet(opts);
+      expect(JSON.parse(keystore).version).equal(3);
+
+        const wallet = await Wallet.unlock(keystore, opts.password);
+
+        const kp = wallet.getP256();
+        const { pem } = await KeyConvert.getP256(kp, 'lockaspem');
+        console.log(pem)
+        const jwk = await KeyConvert.openEncryptedPEMtoJWK(pem, 'lockaspem');
+        console.log(jwk);
+    });
 
     it("when signing a secp256r1/P256 DID and encrypting with JWE, should return a cipher", async function () {
 
@@ -279,7 +294,7 @@ describe("#wallet", function () {
         // console.log(signed);
         expect(!!signed).equal(true)
 
-        const encrypted = await JOSEService.encrypt(kpJwk.jwk, signed);
+        const encrypted = await JOSEService.encrypt([kpJwk.jwk], signed);
         expect(!!encrypted).equals(true)
 
       }
@@ -344,7 +359,7 @@ describe("#wallet", function () {
         // console.log await(JWTService.decodeWithSignature(signed));
 
         // Encrypt JWT
-        const encrypted = await JOSEService.encrypt(kpJwk.jwk, signed);
+        const encrypted = await JOSEService.encrypt([kpJwk.jwk], signed);
         // Stored decoded and encrypted
         localStorage['recentlyStoreCID'] = await ipld.createNode({
           ...did,

@@ -50,6 +50,7 @@ export class KeyConvert {
         if (passphrase && passphrase.length > 0) {
             options.password = passphrase;
         }
+console.log(options)
 
         // PEM
         const composePemKey = composePrivateKey({
@@ -78,7 +79,13 @@ export class KeyConvert {
                 d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
-
+        
+        if (passphrase) {
+            return {
+                der: composeDerKey,
+                pem: composePemKey,
+            }
+        }
         const keys = new ECKey(composePemKey, 'pem');
         const ldSuite = {
             publicKeyJwk: JSON.stringify(keys, null, 2),
@@ -88,7 +95,7 @@ export class KeyConvert {
 
         return {
             der: composeDerKey,
-            jwk: keys.toJSON(),
+            jwk: keys.toJSON(true),
             pem: composePemKey,
             ldSuite,
         };
@@ -133,6 +140,12 @@ export class KeyConvert {
             }
         }, options);
 
+        if (passphrase) {
+            return {
+                der: composeDerKey,
+                pem: composePemKey,
+            }
+        }
         const keys = new ECKey(composePemKey, 'pem');
         const ldSuite = {
             publicKeyJwk: JSON.stringify(keys, null, 2),
@@ -142,12 +155,21 @@ export class KeyConvert {
 
         return {
             der: composeDerKey,
-            jwk: keys.toJSON(),
+            jwk: keys.toJSON(true),
             pem: composePemKey,
             ldSuite,
         };
     }
 
+    public static async openEncryptedPEMtoJWK(pem: string, passphrase: string) {
+        const obj = decomposePrivateKey(pem, {
+            passphrase,
+        })
+        const composePem = composePrivateKey(obj);
+        const keys = new ECKey(composePem, 'pem');
+
+        return keys.toJSON(true);
+    }
     /**
      * Returns private keys in DER, JWK and PEM formats
      * @param kp Key pair
