@@ -34,7 +34,6 @@
     "@erebos/bzz-feed": "^0.13.2",
     "@erebos/keccak256": "^0.13.1",
     "@erebos/secp256k1": "^0.10.0",
-    "@jibrelnetwork/jwallet-web-keystore": "^1.0.0",
     "@types/elliptic": "^6.4.12",
     "anonymous-credentials": "git+https://github.com/cliqz-oss/anonymous-credentials.git",
     "arraybuffer-concat": "0.0.1",

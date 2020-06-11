@@ -1,4 +1,3 @@
-import keystore from '@jibrelnetwork/jwallet-web-keystore';
 import { ethers } from 'ethers';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
 import { HDKey } from 'ethereum-cryptography/hdkey';
@@ -14,6 +13,20 @@ import {
     deriveEth2ValidatorKeys,
 } from "@chainsafe/bls-keygen";
 
+export type AlgorithmTypeString = keyof typeof AlgorithmType;
+export enum AlgorithmType {
+    RSA,
+    ES256K,
+    P256,
+    ED25519,
+    BLS,
+    P256_JWK_PUBLIC,
+    ED25519_JWK_PUBLIC,
+    ES256K_JWK_PUBLIC,
+    RSA_JWK_PUBLIC,
+    RSA_PEM_PUBLIC
+}
+
 export class WalletOptions {
     @IsString()
     @IsDefined()
@@ -24,48 +37,76 @@ export class WalletOptions {
     mnemonic?: string;
 }
 
+export interface IMemKeyStore {
+    get: any;
+    set: any;
+}
+
+export interface ISecureStore {
+    getSecureValue: any;
+    writeSecureValue: any;
+}
 export class Wallet {
+    private inMemoryKeystore: IMemKeyStore;
+    private secureStore: ISecureStore;
 
-
-    constructor(private mnemonic: string,  private ethersWallet: ethers.Wallet) {
+    constructor(private mnemonic: string, private ethersWallet: ethers.Wallet) {
     }
 
+    public createWebSecureWallet(inMemoryKeystore: IMemKeyStore, secureStore: ISecureStore) {
+        return Object.assign(this, {
+            inMemoryKeystore,
+            secureStore
+        })
+    }
+    public async getPublicKey(id: string, algorithm: string) {
+        return this.getPrivateKey(id, algorithm, '');
+    }
 
+    public async getPrivateKey(id: string, algorithm: string, password?: string) {
+        let pvk = '';
+        let key = id + algorithm;
+        if (this.inMemoryKeystore && this.inMemoryKeystore.get(key)) {
+            pvk = this.inMemoryKeystore.get(key);
+        } else {
 
-
-    public  getPrivateKey(store: any, id: string, password: string, session = null) {
-        let pvk ='';
-        if (session && session.get(id)){
-            return session.get(id);
+            // Read value
+            pvk = await this.secureStore.getSecureValue(key);
         }
-        pvk = keystore.getPrivateKey(store, id, password);
-        session.set(id, pvk);
-        return pvk;
+        this.inMemoryKeystore.set(key, pvk);
+        if (AlgorithmType[algorithm] === AlgorithmType.ES256K) {
+            const ES256k = new ec('secp256k1');
+            return ES256k.keyFromPrivate(pvk);
+        }
+
+        if (AlgorithmType[algorithm] === AlgorithmType.P256) {
+            const P256 = new ec('P256');
+            return P256.keyFromPrivate(pvk);
+        }
+
+        if (AlgorithmType[algorithm] === AlgorithmType.ED25519) {
+            const ED25519 = new eddsa('ed25519');
+            return ED25519.keyFromSecret(pvk);
+        }
+        if ([AlgorithmType.P256_JWK_PUBLIC, AlgorithmType.RSA_JWK_PUBLIC, AlgorithmType.ED25519_JWK_PUBLIC,
+            AlgorithmType.ES256K_JWK_PUBLIC].includes(AlgorithmType[algorithm])) {
+            return await JWK.asKey(JSON.parse(pvk), 'jwk');
+        }
     }
 
-    public static addMnemonicToKeystore(store:any, name: string, mnemonic: string, password: string) {
-        return keystore.createWallet(store, {
-          mnemonic,
-          name,  
-          password
-        });
+
+     setSecure(id: string, algorithm: AlgorithmTypeString, value: string) {
+        const key = id + algorithm;
+        // Write value
+        return this.secureStore.writeSecureValue(key, value);
     }
 
-
-    public static addPrivateToKeystore(store:any, name: string, privateKey: string, password: string) {
-        return keystore.createWallet(store, {
-            name,
-            password,
-            privateKey,  
-          });
-    }
     /**
      * Create HD Wallet
-     * @param password password to encrypt keystore
-     */
+     * @param password password to encrypt      */
     public static createHDWallet(obj: WalletOptions) {
         // ethers
-        const { password, mnemonic } = obj;       
+        const { password, mnemonic } = obj;
         let wallet;
         if (password) {
             wallet = ethers.Wallet.createRandom();
@@ -111,7 +152,7 @@ export class Wallet {
     public deriveChild(sequence: number, derivation = `m/44'/60'/0'/0`): Wallet {
         const masterKey = HDNode.fromMnemonic(this.mnemonic);
         const hdnode = masterKey.derivePath(`${derivation}/${sequence}`);
-    //    console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
+        //    console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
         const ethersWallet = new ethers.Wallet(hdnode);
         return new Wallet(ethersWallet.mnemonic, ethersWallet);
     }
@@ -135,7 +176,7 @@ export class Wallet {
 
     public getEd25519(): eddsa.KeyPair {
         const ed25519 = new eddsa('ed25519');
-       // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.mnemonic).extendedKey);
+        // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.mnemonic).extendedKey);
         const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.mnemonic));
         const keypair = ed25519.keyFromSecret(key);
         return keypair;
@@ -143,7 +184,7 @@ export class Wallet {
 
 
     public getP256(): ec.KeyPair {
-        const p256 = new ec('p256');        
+        const p256 = new ec('p256');
         const keypair = p256.keyFromPrivate(HDNode.fromMnemonic(this.mnemonic).privateKey);
         return keypair;
     }
@@ -153,7 +194,7 @@ export class Wallet {
         const keypair = ES256k.keyFromPrivate(HDNode.fromMnemonic(this.mnemonic).privateKey);
         return keypair;
     }
-    
+
     public getBlsMasterKey(): any {
         const masterKey = deriveKeyFromMnemonic(this.mnemonic)
         return {
@@ -165,9 +206,9 @@ export class Wallet {
     public static getRSA256Standalone(len: number = 2048): Promise<JWK.RSAKey> {
         return JWK.createKey('RSA', len, {
             alg: 'RS256',
-            use:'sig'
+            use: 'sig'
         });
     }
 
-    
+
 }

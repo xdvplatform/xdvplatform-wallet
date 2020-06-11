@@ -50,7 +50,6 @@ export class KeyConvert {
         if (passphrase && passphrase.length > 0) {
             options.password = passphrase;
         }
-console.log(options)
 
         // PEM
         const composePemKey = composePrivateKey({
