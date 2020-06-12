@@ -10,7 +10,6 @@
         "./src"
       ]
     },
-    "allowJs": true,
     "target": "es2016",
     "module": "commonjs",
     "moduleResolution": "node",
