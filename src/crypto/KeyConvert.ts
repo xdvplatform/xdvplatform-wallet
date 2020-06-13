@@ -87,7 +87,7 @@ export class KeyConvert {
         }
         const keys = new ECKey(composePemKey, 'pem');
         const ldSuite = {
-            publicKeyJwk: JSON.stringify(keys, null, 2),
+            publicKeyJwk: JSON.stringify(keys.toJSON()),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
             privBytes: () => kp.getPrivate().toArrayLike(Buffer)
         };
@@ -147,7 +147,7 @@ export class KeyConvert {
         }
         const keys = new ECKey(composePemKey, 'pem');
         const ldSuite = {
-            publicKeyJwk: JSON.stringify(keys, null, 2),
+            publicKeyJwk: JSON.stringify(keys.toJSON()),
             pubBytes: () => ethers.utils.arrayify('0x' + kp.getPublic().encodeCompressed('hex')),
             privBytes: () => kp.getPrivate().toArrayLike(Buffer)
         };
