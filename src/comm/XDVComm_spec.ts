@@ -1,21 +1,26 @@
-import { expect } from 'chai';
-import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder'
-import { Wallet } from '../crypto';
-import { IpldClient } from './../ipld';
-import { DIDMethodXDV } from '../did';
 import * as hash from 'hash.js';
+import { DIDDocumentBuilder } from '../did/DIDDocumentBuilder';
+import { DIDMethodXDV } from '../did';
+import { expect } from 'chai';
+import { IpldClient } from './../ipld';
+import { Pubsub } from './Pubsub';
+import { Wallet } from '../crypto';
 let localStorage = {};
 
-import { Pubsub } from './Pubsub';
 
-const alice = new Pubsub();
-const bob = new Pubsub();
-
-const xdvMethodShared = new DIDMethodXDV(alice);
+let alice;
+let bob;
+let xdvMethodShared;
+let ipld;
 
 describe("#xdvcomm", function () {
 
   beforeEach(function () {
+    ipld = new IpldClient();
+     alice = new Pubsub(ipld);
+     bob = new Pubsub(ipld);
+    xdvMethodShared = new DIDMethodXDV(alice);
+
   });
   it("should be able to send message to another recipient using IPFS pubsub", async function () {
 

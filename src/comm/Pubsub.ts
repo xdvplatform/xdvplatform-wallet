@@ -10,7 +10,9 @@ export class Pubsub {
     private address: any;
     private peers: any[] = [];
     private peerId: string;
-    constructor(private ipld: IpldClient = new IpldClient()) { }
+    constructor(private ipld: IpldClient) {
+        this.ipld = ipld
+     }
 
     public static createTopic() {
         return hash.sha256().digest('hex');

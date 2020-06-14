@@ -33,19 +33,18 @@ export const generateRandomString = () =>
         .toString(36)
         .substring(2);
 
-const IPFS = require('ipfs');
-const { DAGNode } = require('ipld-dag-pb');
-const Graph = require('ipld-graph-builder');
 
 const DEFAULT_CONTEXT = 'https://w3id.org/did/v1';
-
+let IPFS;
+let Graph;
 export class IpldClient {
     public ipfsClient;
     private graph: any;
     private signer: (a: string) => Promise<string>;
     private ipfsPath: string;
     constructor() {
-
+        IPFS = require('ipfs');
+        Graph = require('ipld-graph-builder');        
     }
 
     public async initialize(config: any = null) {

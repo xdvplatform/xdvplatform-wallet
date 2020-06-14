@@ -10,6 +10,7 @@ import { JWE, JWK } from 'node-jose';
 import { JWTService } from './JWTService';
 import { KeyConvert } from './KeyConvert';
 import { LDCryptoTypes } from './LDCryptoTypes';
+import { sign } from '@erebos/secp256k1';
 import { SwarmFeed } from '../swarm/feed';
 
 import {
@@ -84,10 +85,11 @@ export class Wallet {
      * Creates a new queryable swarm feed
      * @param user 
      */
-    public getSwarmNodeQueryable(user: any) {
+    public getSwarmNodeQueryable(user: any, nodeUrl?: string) {
         const swarmFeed = new SwarmFeed(
             (data) => Promise.resolve(false),
-            user
+            user,
+            nodeUrl,
         );
         swarmFeed.initialize();
 
@@ -98,20 +100,15 @@ export class Wallet {
      * Creates a new complete swarm feed
      * @param keypair 
      */
-    public async getSwarmNodeClient(user: any, algorithm: AlgorithmTypeString = 'ES256K') {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+    public async getSwarmNodeClient(user: any, algorithm: AlgorithmTypeString = 'ES256K', nodeUrl?: string) {
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
         const keypair = await this.getPrivateKey(algorithm);
         const swarmFeed = new SwarmFeed(
-            (data) => async () => {
-                const ok = await this.onPassphrase;
-                if (ok) {
-                    return keypair.sign(data);
-                }
-                throw new Error('invalid_passphrase')
-            },
-            user
+            (data) => Promise.resolve(sign(data, keypair)),
+            user,
+            nodeUrl
         );
         swarmFeed.initialize();
         return swarmFeed;
@@ -146,7 +143,29 @@ export class Wallet {
         }
     }
 
+    public async getImportKey(id: string) {
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
+        const content = await this.db.get(id);
+        return content;
+
+    }
+
+
+    /**
+     * Sets a public key in storage
+     * @param id 
+     * @param algorithm 
+     * @param value 
+     */
+    public async setImportKey(id: string,  value: object) {
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+
+        await this.db.put({
+            _id: id,
+            key: value
+        });
+    }
     public async createWallet(password: string, onPassphrase: any, mnemonic?: string) {
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
@@ -233,13 +252,13 @@ export class Wallet {
         await this.db.put(model);
 
         this.id = id;
-        this.onPassphrase = (p) => this.validate(p, id, onPassphrase);
+        this.onPassphrase = this.validate(id, onPassphrase);
 
         return this;
     }
 
     public async getPrivateKey(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         const ks: KeystoreDbModel = await this.db.get(this.id);
 
@@ -248,27 +267,27 @@ export class Wallet {
             return kp.keyFromSecret(ks.keypairs.ED25519);
         } else if (algorithm === 'P256') {
             const kp = new ec('p256');
-            return kp.keyFromPrivate(ks.keypairExports.P256);
+            return kp.keyFromPrivate(ks.keypairs.P256);
         } else if (algorithm === 'ES256K') {
             const kp = new ec('secp256k1');
-            return kp.keyFromPrivate(ks.keypairExports.ES256K);
+            return kp.keyFromPrivate(ks.keypairs.ES256K);
         }
     }
 
     public async getPrivateKeyExports(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
         const ks: KeystoreDbModel = await this.db.get(this.id);
         return ks.keypairExports[algorithm];
     }
 
 
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         const ok = await this.onPassphrase;
         if (ok) {
             const { pem } = await this.getPrivateKeyExports(algorithm);
-            return [,JWTService.sign(pem, payload, options)];
+            return [, await JWTService.sign(pem, payload, options)];
         }
         return [new Error('invalid_passphrase')]
 
@@ -284,24 +303,24 @@ export class Wallet {
      * @param payload 
      */
     public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
         const ok = isPublicKey ? true : (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
-            return [,JOSEService.encrypt([jwk], payload)];
+            return [, await JOSEService.encrypt([jwk], payload)];
         }
         return [new Error('invalid_passphrase')]
 
     }
 
     public async decryptJWE(algorithm: AlgorithmTypeString, payload: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         const ok = (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
 
-            return [,JWE.createDecrypt(
+            return [, await JWE.createDecrypt(
                 await JWK.asKey(jwk, 'jwk')
             ).decrypt(payload)];
         }
@@ -313,11 +332,11 @@ export class Wallet {
      * @param payload 
      */
     public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
         const ok = isPublicKey ? true : (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
-            return [ null, JOSEService.encrypt([jwk, ...keys], payload)];
+            return [null, await JOSEService.encrypt([jwk, ...keys], payload)];
         }
         return [new Error('invalid_passphrase')]
     }
