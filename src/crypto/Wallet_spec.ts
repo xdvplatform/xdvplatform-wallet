@@ -22,36 +22,27 @@ describe("#wallet", function () {
   });
 
   it("when adding a password for a new wallet, should create a keystore", async function () {
-    const keystore = await Wallet.createHDWallet({ password: 'password123' });
-    expect(JSON.parse(keystore).version).equal(3);
+    const wallet = new Wallet();
+    await wallet.createWallet('123password',    Promise.resolve('123password'))
+    expect(!!wallet.id).equal(true);
   });
 
 
   it("when adding a password and keystore for a new wallet, should create keystore", async function () {
     const mnemonic = Wallet.generateMnemonic();
-    selectedWallet = await Wallet.createWallet('123password', mnemonic);
-    await selectedWallet.lock('123password')
+    const wallet = new Wallet();
+    selectedWallet = await wallet.createWallet('123password', Promise.resolve('123password'), mnemonic);
     expect(selectedWallet.mnemonic).equal(mnemonic);
   });
 
-  it("when given a keystore and password, should unlock and return a wallet", async () => {
+  
 
-    try {
-      const wallet = await selectedWallet.unlock('123password');
-      expect(true).equal(true);
-    }
-    catch (e) {
-      console.log(e);
-      throw e;
-    }
-  });
 
   it("when given a seed and creating EdDSA keys, should return EdDSA keypair", async function () {
 
 
     try {
-      const wallet = selectedWallet.unlock('123password');
-      const kp = await wallet.getEd25519();
+      const kp = await selectedWallet.getEd25519();
       expect(!!kp).equal(true);
     }
     catch (e) {
@@ -63,8 +54,7 @@ describe("#wallet", function () {
 
     
     try {
-      const wallet = selectedWallet.unlock('123password');
-      const kp = await wallet.getP256();
+      const kp = await selectedWallet.getP256();
       expect(!!kp).equal(true);
     }
     catch (e) {
@@ -75,8 +65,7 @@ describe("#wallet", function () {
   it("when given a seed, should return a PEM", async function () {
 
     try {
-      const wallet = selectedWallet.unlock('123password');
-      const pem = (await KeyConvert.getES256K(wallet.getES256K())).pem;
+      const pem = (await KeyConvert.getES256K(selectedWallet.getES256K())).pem;
       expect(!!pem).equal(true);
     }
     catch (e) {
@@ -89,8 +78,7 @@ describe("#wallet", function () {
 
 
     try {
-      const wallet = selectedWallet.unlock('123password');
-      const der = await KeyConvert.getES256K(wallet.getES256K());
+      const der = await KeyConvert.getES256K(selectedWallet.getES256K());
       expect(!!der).equal(true);
     }
     catch (e) {
@@ -103,8 +91,7 @@ describe("#wallet", function () {
     it("when signing with ES256K, should return a signed JWT", async function () {
 
       try {
-        const wallet = selectedWallet.unlock('123password');
-        const { pem } = await wallet.getPrivateKeyExports('ES256K');
+          const { pem } = await selectedWallet.getPrivateKeyExports('ES256K');
         const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
@@ -157,8 +144,7 @@ describe("#wallet", function () {
 
 
       try {
-        const wallet = selectedWallet.unlock('123password');
-        const { pem } = await wallet.getPrivateKeyExports('P256');
+          const { pem } = await selectedWallet.getPrivateKeyExports('P256');
         const jwt = await JWTService.sign(pem, {
           testing: 'testing'
         }, {
@@ -179,8 +165,7 @@ describe("#wallet", function () {
     it("when signing with Ed25519, should return a signed JWT", async function () {
 
       try {
-        const wallet = selectedWallet.unlock('123password');
-        const { pem } = await wallet.getPrivateKeyExports('ED25519');
+          const { pem } = await selectedWallet.getPrivateKeyExports('ED25519');
 
         const jwt = await JWTService.sign(pem, {
           testing: 'testing'
@@ -202,27 +187,12 @@ describe("#wallet", function () {
 
   });
   describe("#encryption", function () {
-    xit("when encrypting keys to PEM, should be able to decrypt and convert to JWK", async function () {
-
-      const mnemonic = Wallet.generateMnemonic();
-      const opts = { mnemonic, password: '123password' };
-      const keystore = await Wallet.createHDWallet(opts);
-      expect(JSON.parse(keystore).version).equal(3);
-
-      const wallet = await Wallet.unlock(keystore, opts.password);
-
-      const kp = wallet.getP256();
-      const { pem } = await KeyConvert.getP256(kp, 'lockaspem');
-      console.log(pem)
-      const jwk = await KeyConvert.openEncryptedPEMtoJWK(pem, 'lockaspem');
-      console.log(jwk);
-    });
+    
 
     it("when signing a secp256r1/P256 DID and encrypting with JWE, should return a cipher", async function () {
 
       try {
-        const wallet = selectedWallet.unlock('123password');
-        const { pem, ldJsonPublic } = await wallet.getPrivateKeyExports('P256');
+          const { pem, ldJsonPublic } = await selectedWallet.getPrivateKeyExports('P256');
         // Create IPFS key storage lock
         const session = await xdvMethod.createIpldSession(pem);
 
@@ -235,7 +205,7 @@ describe("#wallet", function () {
           });
 
         // Signing
-        const signed = await wallet.signJWT('P256', {
+        const signed = await selectedWallet.signJWT('P256', {
           ...did,
           testing: 'testing'
         }, {
@@ -248,7 +218,7 @@ describe("#wallet", function () {
         // console.log(signed);
         expect(!!signed).equal(true)
 
-        const encrypted = await wallet.encryptJWE('P256', signed);
+        const encrypted = await selectedWallet.encryptJWE('P256', signed);
         expect(!!encrypted).equals(true)
 
       }
@@ -261,17 +231,12 @@ describe("#wallet", function () {
 
     it("when signing a secp256r1/P256 DID and encrypting with JWE, should store in ipld", async function () {
 
-      const mnemonic = Wallet.generateMnemonic();
-      const opts = { mnemonic, password: '123password' };
-      const keystore = await Wallet.createHDWallet(opts);
-      expect(JSON.parse(keystore).version).equal(3);
-
+     
       try {
         // Unlock wallet
-        const wallet = await Wallet.unlock(keystore, opts.password);
 
         // Create key
-        const kp = wallet.getP256();
+        const kp = selectedWallet.getP256();
         const kpJwk = await KeyConvert.getP256(kp);
 
         // Create LD Crypto Suite - p256 / Sepc256r1
@@ -320,9 +285,8 @@ describe("#wallet", function () {
           encrypted
         });
 
-        // Store Keystore
-        localStorage['ps'] = opts.password;
-        localStorage['ks'] = keystore;
+     
+     
         expect(!!localStorage['recentlyStoreDID']).equals(true);
       }
       catch (e) {
@@ -358,12 +322,10 @@ describe("#wallet", function () {
         const resolver = await xdvMethod.getResolver(localStorage['recentlyStoreCID']);
         const doc = await resolver.xdv(localStorage['recentlyStoreDID']);
 
-        // unlock wallet
-        let wallet = await Wallet.unlock(localStorage['ks'], localStorage['ps']);
-
+        
         // create new key pairs
         // const passphrase = 'password-to-store-pem-for-later-use';
-        const kp = wallet.getP256();
+        const kp = selectedWallet.getP256();
         const kpJwk = await KeyConvert.getP256(kp);
 
 

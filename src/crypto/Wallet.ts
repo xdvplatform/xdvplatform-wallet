@@ -1,15 +1,17 @@
+import PouchDB from 'pouchdb';
 import { ec, eddsa } from 'elliptic';
 import { ethers } from 'ethers';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
-import { HDKey } from 'ethereum-cryptography/hdkey';
 import { HDNode } from 'ethers/utils';
+import { interval, Observable, Subject } from 'rxjs';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { JOSEService } from './JOSEService';
 import { JWE, JWK } from 'node-jose';
 import { JWTService } from './JWTService';
 import { KeyConvert } from './KeyConvert';
 import { LDCryptoTypes } from './LDCryptoTypes';
-const PouchDB = require('pouchdb');
+import { SwarmFeed } from '../swarm/feed';
+
 import {
     generateRandomSecretKey,
     deriveKeyFromMnemonic,
@@ -17,7 +19,6 @@ import {
     deriveKeyFromMaster,
     deriveEth2ValidatorKeys,
 } from "@chainsafe/bls-keygen";
-const PouchSession = require("session-pouchdb-store");
 
 export type AlgorithmTypeString = keyof typeof AlgorithmType;
 export enum AlgorithmType {
@@ -57,11 +58,61 @@ export interface KeystoreDbModel {
 export interface KeyStoreModel { BLS?: any, ES256K: any; P256: any; RSA: any; ED25519: any; }
 
 export class Wallet {
-    public id: any;
-    private session: any;
-    private db: any;
+    public id: string;
+    private onPassphrase: any;
+    private db = new PouchDB('xdv:web:wallet');
+    session: {
 
-    constructor(public mnemonic: string, private ethersWallet: ethers.Wallet) {
+        id: string;
+        authenticated: boolean;
+    } = {
+            id: '',
+            authenticated: false
+        };
+    sessionSub: any;
+    ethersWallet: any;
+    mnemonic: any;
+    constructor() {
+        PouchDB.plugin(require('crypto-pouch'));
+        this.sessionSub = interval(5 * 60 * 1000).subscribe(i => {
+            this.session.authenticated = false;
+        })
+    }
+
+
+    /**
+     * Creates a new queryable swarm feed
+     * @param user 
+     */
+    public getSwarmNodeQueryable(user: any) {
+        const swarmFeed = new SwarmFeed(
+            (data) => Promise.resolve(false),
+            user
+        );
+        swarmFeed.initialize();
+
+        return swarmFeed;
+    }
+
+    /**
+     * Creates a new complete swarm feed
+     * @param keypair 
+     */
+    public async getSwarmNodeClient(user: any, algorithm: AlgorithmTypeString = 'ES256K') {
+        if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
+        const keypair = await this.getPrivateKey(algorithm);
+        const swarmFeed = new SwarmFeed(
+            (data) => async () => {
+                const ok = await this.onPassphrase;
+                if (ok) {
+                    return keypair.sign(data);
+                }
+                throw new Error('Please unlock before signing')
+            },
+            user
+        );
+        swarmFeed.initialize();
+        return swarmFeed;
     }
 
     /**
@@ -70,8 +121,7 @@ export class Wallet {
      * @param algorithm 
      */
     public async getPublicKey(id: string) {
-        if (this.session && !this.session.lock) throw new Error('Locked');
-        
+
         const content = await this.db.get(id);
         return await JWK.asKey(JSON.parse(content.key), 'jwk');
     }
@@ -84,8 +134,7 @@ export class Wallet {
      * @param value 
      */
     public async setPublicKey(id: string, algorithm: AlgorithmTypeString, value: object) {
-        if (this.session && !this.session.lock) throw new Error('Locked');
-        
+
         if ([AlgorithmType.P256_JWK_PUBLIC, AlgorithmType.RSA_JWK_PUBLIC, AlgorithmType.ED25519_JWK_PUBLIC,
         AlgorithmType.ES256K_JWK_PUBLIC].includes(AlgorithmType[algorithm])) {
             await this.db.put({
@@ -96,20 +145,25 @@ export class Wallet {
     }
 
 
-    public static async createWallet(password: string, mnemonic?: string) {
+    public async createWallet(password: string, onPassphrase: any, mnemonic?: string) {
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
-        const db = new PouchDB('id', { adapter: 'leveldb' });
-        PouchDB.plugin(require('crypto-pouch'));
+        this.session.authenticated = true;
+        this.session.id = id;
 
-        let wallet;
+        await this.db.put({
+            _id: id + 'x',
+            passphrase: password
+        });
         if (mnemonic) {
-            wallet = ethers.Wallet.fromMnemonic(mnemonic);
+            this.ethersWallet = ethers.Wallet.fromMnemonic(mnemonic);
         } else {
-            wallet = ethers.Wallet.createRandom();
-            mnemonic = wallet.mnemonic;
+            this.ethersWallet = ethers.Wallet.createRandom();
+            mnemonic = this.ethersWallet.mnemonic;
         }
-        const webWallet = new Wallet(mnemonic, wallet);
+
+        this.mnemonic = mnemonic
+
 
         let keystores: KeyStoreModel = {
             ED25519: '',
@@ -119,7 +173,7 @@ export class Wallet {
             BLS: '',
         }
 
-        let keyExports: KeyStoreModel= {
+        let keyExports: KeyStoreModel = {
             ED25519: '',
             ES256K: '',
             P256: '',
@@ -127,7 +181,7 @@ export class Wallet {
             BLS: '',
         }
         // ED25519
-        let kp = webWallet.getEd25519();
+        let kp = this.getEd25519();
         keystores.ED25519 = kp.getSecret('hex');
         keyExports.ED25519 = await KeyConvert.getEd25519(kp);
         keyExports.ED25519.ldJsonPublic = await KeyConvert.createLinkedDataJsonFormat(
@@ -137,7 +191,7 @@ export class Wallet {
 
 
         // ES256K
-        kp = webWallet.getES256K();
+        kp = this.getES256K();
         keystores.ES256K = kp.getPrivate('hex');
         keyExports.ES256K = await KeyConvert.getES256K(kp);
         keyExports.ES256K.ldJsonPublic = await KeyConvert.createLinkedDataJsonFormat(
@@ -148,7 +202,7 @@ export class Wallet {
         );
 
         // P256
-        kp = webWallet.getP256();
+        kp = this.getP256();
         keystores.P256 = kp.getPrivate('hex');
         keyExports.P256 = await KeyConvert.getP256(kp);
         keyExports.P256.ldJsonPublic = await KeyConvert.createLinkedDataJsonFormat(
@@ -160,28 +214,31 @@ export class Wallet {
         // RSA
         kp = await Wallet.getRSA256Standalone();
         keystores.RSA = kp.toJSON(true);
+        keyExports.RSA = await KeyConvert.getRSA(kp);
 
-
-        const keystoreMnemonicAsString = await webWallet.ethersWallet.encrypt(password);
+        const keystoreMnemonicAsString = await this.ethersWallet.encrypt(password);
 
         const model: KeystoreDbModel = {
             _id: id,
             keypairs: keystores,
             keystoreSeed: keystoreMnemonicAsString,
             mnemonic: mnemonic,
-            keypairExports: keyExports
+            keypairExports: keyExports,
+
         }
 
-        await db.put(model);
-        await db.crypto(password);
-        webWallet.id = id;
-        webWallet.db = db;
-        return webWallet;
+        await this.db.crypto(password);
+        await this.db.put(model);
+
+        this.id = id;
+        this.onPassphrase = (p) => this.validate(p, id, onPassphrase);
+
+        return this;
     }
 
     public async getPrivateKey(algorithm: AlgorithmTypeString) {
-        if (this.session && !this.session.lock) throw new Error('Locked');
-        
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+
         const ks: KeystoreDbModel = await this.db.get(this.id);
 
         if (algorithm === 'ED25519') {
@@ -197,80 +254,123 @@ export class Wallet {
     }
 
     public async getPrivateKeyExports(algorithm: AlgorithmTypeString) {
-        if (this.session && !this.session.lock) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+
+
         const ks: KeystoreDbModel = await this.db.get(this.id);
         return ks.keypairExports[algorithm];
     }
 
 
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any) {
-        const { pem } = await this.getPrivateKeyExports(algorithm);
-        return JWTService.sign(pem, payload, options);
-    }
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
 
-
-    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any) {
-        const { jwk } = await this.getPrivateKeyExports(algorithm);
-        return JOSEService.encrypt([jwk], payload);
-    }
-
-    /**
-     * Create HD Wallet
-     * @param password password to encrypt      */
-    public static createHDWallet(obj: WalletOptions) {
-        // ethers
-        const { password, mnemonic } = obj;
-        let wallet;
-        if (password) {
-            wallet = ethers.Wallet.createRandom();
-        } else {
-            wallet = ethers.Wallet.fromMnemonic(mnemonic);
+        const ok = await this.onPassphrase;
+        if (ok) {
+            const { pem } = await this.getPrivateKeyExports(algorithm);
+            return JWTService.sign(pem, payload, options);
         }
-        return wallet.encrypt(password);
+    }
+
+    public async signJWTFromPublic(publicKey: any, payload: any, options: any) {
+        return JWTService.sign(publicKey, payload, options);
     }
 
     /**
-     * Generates a mnemonic
+     * Signs JWE
+     * @param algorithm 
+     * @param payload 
      */
+    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        const ok = isPublicKey ? true : (await this.onPassphrase);
+        if (ok) {
+            const { jwk } = await this.getPrivateKeyExports(algorithm);
+            return JOSEService.encrypt([jwk], payload);
+        }
+    }
+
+    public async decryptJWE(algorithm: AlgorithmTypeString, payload: any) {
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        const ok = (await this.onPassphrase);
+        if (ok) {
+            const { jwk } = await this.getPrivateKeyExports(algorithm);
+
+            return JWE.createDecrypt(
+                await JWK.asKey(jwk, 'jwk')
+            ).decrypt(payload);
+        }
+    }
+    /**
+     * Signs JWE with multiple keys
+     * @param algorithm 
+     * @param payload 
+     */
+    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
+        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        const ok = isPublicKey ? true : (await this.onPassphrase);
+        if (ok) {
+            const { jwk } = await this.getPrivateKeyExports(algorithm);
+            return JOSEService.encrypt([jwk, ...keys], payload);
+        }
+    }
+    /**
+    * Generates a mnemonic
+    */
     public static generateMnemonic() {
         return ethers.Wallet.createRandom().mnemonic;
     }
 
-    public  lock(password: string) {
-        this.session = new PouchSession(this.db, {
-            maxIdle:  15 * 60 * 1000,
-            purge:  15* 60* 1000,
-        });
+    // public lock(password: string) {
+    //     this.session = new PouchSession(this.db, {
+    //         maxIdle: 15 * 60 * 1000,
+    //         purge: 15 * 60 * 1000,
+    //     });
 
-        this.session['lock'] = password;
+    //     this.session.passphrase = password;
+    //     this.session.locked = true;
+    //     return this;
+    // }
 
-        return this;
+
+    public open(id: string, onPassphrase?: any) {
+        const wallet = new Wallet();
+        wallet.id = id;
+        wallet.onPassphrase = this.validate(id, onPassphrase);
+        return wallet;
     }
-    
-    public  unlock(password: string) {
-        try {
-            if (this.session['lock'] && this.session['lock'] === password) {
-                return this as Wallet;
-            }
-            else {
-                throw new Error('Invalid Session')
-            }
-        } catch (e) {
-            throw new Error('Invalid password')
-        }
+    async validate(id, onPassphrase) {
+        const { passphrase } = await this.db.get(id + 'x');
+        const p = await onPassphrase;
+        const res = (p === passphrase);
+        this.session.authenticated = res;
+        this.session.id = id;
+        return Promise.resolve(res);
     }
+    // public unlock(password: string) {
+    //     try {
+    //         if (this.session.locked && this.session.passphrase === password) {
+    //             this.session.locked = false;
+    //             return this as Wallet;
+    //         }
+    //         else {
+    //             throw new Error('Invalid Session')
+    //         }
+    //     } catch (e) {
+    //         throw new Error('Invalid password')
+    //     }
+    // }
 
     /**
      * Derives a new child Wallet
      */
-    public deriveChild(sequence: number, derivation = `m/44'/60'/0'/0`): Wallet {
-        if (this.session && !this.session.lock) throw new Error('Locked');
-        
+    public deriveChild(sequence: number, derivation = `m/44'/60'/0'/0`): string {
+
         const masterKey = HDNode.fromMnemonic(this.mnemonic);
         const hdnode = masterKey.derivePath(`${derivation}/${sequence}`);
         //    console.log(hdnode.path, hdnode.fingerprint, hdnode.parentFingerprint);
         const ethersWallet = new ethers.Wallet(hdnode);
-        return new Wallet(ethersWallet.mnemonic, ethersWallet);
+        return ethersWallet.mnemonic;
     }
 
     public get path() {
@@ -283,12 +383,11 @@ export class Wallet {
     /**
      * Derives a wallet from a path
      */
-    public deriveFromPath(path: string): Wallet {
-        if (this.session && !this.session.lock) throw new Error('Locked');
-        
+    public deriveFromPath(path: string): string {
+
         const node = HDNode.fromMnemonic(this.mnemonic).derivePath(path);
         const ethersWallet = new ethers.Wallet(node);
-        return new Wallet(ethersWallet.mnemonic, ethersWallet);
+        return ethersWallet.mnemonic;
     }
 
     public getEd25519(): eddsa.KeyPair {

@@ -6,7 +6,6 @@ import { getFeedTopic } from '@erebos/bzz-feed/esm/feed';
 import { pubKeyToAddress } from '@erebos/keccak256';
 // @ts-ignore
 
-const PromiseFileReader = require("promise-file-reader");
 
 // const BZZ_URL = 'https://dappnode.auth2factor.com/swarm/';
 const BZZ_URL = "https://swarm-gateways.net/";
