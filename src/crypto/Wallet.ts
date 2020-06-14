@@ -99,6 +99,8 @@ export class Wallet {
      * @param keypair 
      */
     public async getSwarmNodeClient(user: any, algorithm: AlgorithmTypeString = 'ES256K') {
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+
         if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
         const keypair = await this.getPrivateKey(algorithm);
         const swarmFeed = new SwarmFeed(
@@ -107,7 +109,7 @@ export class Wallet {
                 if (ok) {
                     return keypair.sign(data);
                 }
-                throw new Error('Please unlock before signing')
+                throw new Error('invalid_passphrase')
             },
             user
         );
@@ -237,7 +239,7 @@ export class Wallet {
     }
 
     public async getPrivateKey(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
 
         const ks: KeystoreDbModel = await this.db.get(this.id);
 
@@ -254,22 +256,22 @@ export class Wallet {
     }
 
     public async getPrivateKeyExports(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
-
-
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
         const ks: KeystoreDbModel = await this.db.get(this.id);
         return ks.keypairExports[algorithm];
     }
 
 
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
 
         const ok = await this.onPassphrase;
         if (ok) {
             const { pem } = await this.getPrivateKeyExports(algorithm);
-            return JWTService.sign(pem, payload, options);
+            return [,JWTService.sign(pem, payload, options)];
         }
+        return [new Error('invalid_passphrase')]
+
     }
 
     public async signJWTFromPublic(publicKey: any, payload: any, options: any) {
@@ -282,24 +284,28 @@ export class Wallet {
      * @param payload 
      */
     public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
         const ok = isPublicKey ? true : (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
-            return JOSEService.encrypt([jwk], payload);
+            return [,JOSEService.encrypt([jwk], payload)];
         }
+        return [new Error('invalid_passphrase')]
+
     }
 
     public async decryptJWE(algorithm: AlgorithmTypeString, payload: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
+
         const ok = (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
 
-            return JWE.createDecrypt(
+            return [,JWE.createDecrypt(
                 await JWK.asKey(jwk, 'jwk')
-            ).decrypt(payload);
+            ).decrypt(payload)];
         }
+        return [new Error('invalid_passphrase')]
     }
     /**
      * Signs JWE with multiple keys
@@ -307,12 +313,13 @@ export class Wallet {
      * @param payload 
      */
     public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) throw new Error('Locked');
+        if (this.session.id !== this.id && !this.session.authenticated) [ new Error('locked') ];
         const ok = isPublicKey ? true : (await this.onPassphrase);
         if (ok) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
-            return JOSEService.encrypt([jwk, ...keys], payload);
+            return [ null, JOSEService.encrypt([jwk, ...keys], payload)];
         }
+        return [new Error('invalid_passphrase')]
     }
     /**
     * Generates a mnemonic
