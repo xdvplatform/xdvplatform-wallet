@@ -1,9 +1,16 @@
 import PouchDB from 'pouchdb';
 import { ec, eddsa } from 'elliptic';
 import { ethers } from 'ethers';
+import { filter, mergeMap, of } from 'rxjs/operators';
+import {
+    from,
+    interval,
+    Observable,
+    of,
+    Subject
+    } from 'rxjs';
 import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
 import { HDNode } from 'ethers/utils';
-import { interval, Observable, Subject } from 'rxjs';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { JOSEService } from './JOSEService';
 import { JWE, JWK } from 'node-jose';
@@ -60,7 +67,9 @@ export interface KeyStoreModel { BLS?: any, ES256K: any; P256: any; RSA: any; ED
 
 export class Wallet {
     public id: string;
-    private onPassphrase: any;
+    public onRequestPassphrase: Subject = new Subject<string>();
+    public onRequestPassphrase2: Subject = new Subject<string>();
+
     private db = new PouchDB('xdv:web:wallet');
     session: {
 
@@ -106,8 +115,9 @@ export class Wallet {
         if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
         const keypair = await this.getPrivateKey(algorithm);
         const swarmFeed = new SwarmFeed(
-            (data) => Promise.resolve(sign(data, keypair)),
+            (data) => sign(data, keypair),
             user,
+            () => Promise.resolve(),
             nodeUrl
         );
         swarmFeed.initialize();
@@ -158,7 +168,7 @@ export class Wallet {
      * @param algorithm 
      * @param value 
      */
-    public async setImportKey(id: string,  value: object) {
+    public async setImportKey(id: string, value: object) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         await this.db.put({
@@ -252,13 +262,13 @@ export class Wallet {
         await this.db.put(model);
 
         this.id = id;
-        this.onPassphrase = this.validate(id, onPassphrase);
 
         return this;
     }
 
     public async getPrivateKey(algorithm: AlgorithmTypeString) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+
 
         const ks: KeystoreDbModel = await this.db.get(this.id);
 
@@ -272,6 +282,7 @@ export class Wallet {
             const kp = new ec('secp256k1');
             return kp.keyFromPrivate(ks.keypairs.ES256K);
         }
+
     }
 
     public async getPrivateKeyExports(algorithm: AlgorithmTypeString) {
@@ -284,8 +295,14 @@ export class Wallet {
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
-        const ok = await this.onPassphrase;
-        if (ok) {
+
+        this.onRequestPassphrase.next({ type: 'wallet' });
+
+        const p = await this.onRequestPassphrase.pipe(
+            filter(i => i.type === 'ui')
+        ).toPromise();
+
+        if (p.passphrase === await this.db.get(this.id + 'x')) {
             const { pem } = await this.getPrivateKeyExports(algorithm);
             return [, await JWTService.sign(pem, payload, options)];
         }
@@ -304,8 +321,14 @@ export class Wallet {
      */
     public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
-        const ok = isPublicKey ? true : (await this.onPassphrase);
-        if (ok) {
+
+        this.onRequestPassphrase.next({ type: 'wallet' });
+
+        const p = await this.onRequestPassphrase.pipe(
+            filter(i => i.type === 'ui')
+        ).toPromise();
+
+        if (p.passphrase === await this.db.get(this.id + 'x')) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
             return [, await JOSEService.encrypt([jwk], payload)];
         }
@@ -316,8 +339,13 @@ export class Wallet {
     public async decryptJWE(algorithm: AlgorithmTypeString, payload: any) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
-        const ok = (await this.onPassphrase);
-        if (ok) {
+        this.onRequestPassphrase.next({ type: 'wallet' });
+
+        const p = await this.onRequestPassphrase.pipe(
+            filter(i => i.type === 'ui')
+        ).toPromise();
+
+        if (p.passphrase === await this.db.get(this.id + 'x')) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
 
             return [, await JWE.createDecrypt(
@@ -333,8 +361,14 @@ export class Wallet {
      */
     public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
         if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
-        const ok = isPublicKey ? true : (await this.onPassphrase);
-        if (ok) {
+
+        this.onRequestPassphrase.next({ type: 'wallet' });
+
+        const p = await this.onRequestPassphrase.pipe(
+            filter(i => i.type === 'ui')
+        ).toPromise();
+
+        if (p.passphrase === await this.db.get(this.id + 'x')) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
             return [null, await JOSEService.encrypt([jwk, ...keys], payload)];
         }
@@ -346,46 +380,17 @@ export class Wallet {
     public static generateMnemonic() {
         return ethers.Wallet.createRandom().mnemonic;
     }
+ 
+    public async open(id: string) {
+        this.id = id;
+        this.onRequestPassphrase.next({ type: 'wallet' });
+        this.onRequestPassphrase2.subscribe(p => {
+            this.db.crypto(p.passphrase);
+            this.onRequestPassphrase.next({ type: 'done' })
 
-    // public lock(password: string) {
-    //     this.session = new PouchSession(this.db, {
-    //         maxIdle: 15 * 60 * 1000,
-    //         purge: 15 * 60 * 1000,
-    //     });
-
-    //     this.session.passphrase = password;
-    //     this.session.locked = true;
-    //     return this;
-    // }
-
-
-    public open(id: string, onPassphrase?: any) {
-        const wallet = new Wallet();
-        wallet.id = id;
-        wallet.onPassphrase = this.validate(id, onPassphrase);
-        return wallet;
+        });
     }
-    async validate(id, onPassphrase) {
-        const { passphrase } = await this.db.get(id + 'x');
-        const p = await onPassphrase;
-        const res = (p === passphrase);
-        this.session.authenticated = res;
-        this.session.id = id;
-        return Promise.resolve(res);
-    }
-    // public unlock(password: string) {
-    //     try {
-    //         if (this.session.locked && this.session.passphrase === password) {
-    //             this.session.locked = false;
-    //             return this as Wallet;
-    //         }
-    //         else {
-    //             throw new Error('Invalid Session')
-    //         }
-    //     } catch (e) {
-    //         throw new Error('Invalid password')
-    //     }
-    // }
+
 
     /**
      * Derives a new child Wallet

@@ -1,20 +1,16 @@
 import { BzzBrowser } from '@erebos/bzz-browser';
 import { BzzFeed, FeedID } from '@erebos/bzz-feed';
-import { createKeyPair, sign } from '@erebos/secp256k1';
-import { forkJoin } from 'rxjs';
-import { getFeedTopic } from '@erebos/bzz-feed/esm/feed';
-import { pubKeyToAddress } from '@erebos/keccak256';
-// @ts-ignore
-
-
-// const BZZ_URL = 'https://dappnode.auth2factor.com/swarm/';
 const BZZ_URL = "https://swarm-gateways.net/";
 
 export class SwarmFeed {
     bzz: BzzBrowser;
     bzzFeed: BzzFeed;
-    constructor(private signer: any, public user: string,
-        private url: string = BZZ_URL) { }
+    constructor(
+        private signer: any,
+        public user: string,
+        private onPassphrase: any,
+        private url: string = BZZ_URL
+    ) { }
 
 
     initialize() {
@@ -24,12 +20,14 @@ export class SwarmFeed {
         this.bzz = bzz;
         this.bzzFeed = bzzFeed;
     }
-    async   publishDirectory({ name, defaultPath, contents, options = {} }: {
+ 
+    async publishDirectory({ name, defaultPath, contents, options = {} }: {
         name: string;
         contents: any[];
         defaultPath: string;
         options?: any;
     }) {
+
 
         const feedHash = await this.bzzFeed.createManifest({
             user: this.user, name
