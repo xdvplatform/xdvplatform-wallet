@@ -1,9 +1,7 @@
-# xdv-tools
-
-## XDV Platform tools
+# XDV Platform Wallet
 
 
-`npm i xdvplatform-tools`
+`npm i xdvplatform-wallet`
 
 ### Features
 
