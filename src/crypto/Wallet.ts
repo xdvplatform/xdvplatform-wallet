@@ -67,26 +67,14 @@ export interface KeyStoreModel { BLS?: any, ES256K: any; P256: any; RSA: any; ED
 
 export class Wallet {
     public id: string;
-    public onRequestPassphrase: Subject = new Subject<string>();
-    public onRequestPassphrase2: Subject = new Subject<string>();
+    public onRequestPassphraseSubscriber: Subject = new Subject<string>();
+    public onRequestPassphraseWallet: Subject = new Subject<string>();
 
     private db = new PouchDB('xdv:web:wallet');
-    session: {
-
-        id: string;
-        authenticated: boolean;
-    } = {
-            id: '',
-            authenticated: false
-        };
-    sessionSub: any;
     ethersWallet: any;
     mnemonic: any;
     constructor() {
         PouchDB.plugin(require('crypto-pouch'));
-        this.sessionSub = interval(5 * 60 * 1000).subscribe(i => {
-            this.session.authenticated = false;
-        })
     }
 
 
@@ -110,7 +98,6 @@ export class Wallet {
      * @param keypair 
      */
     public async getSwarmNodeClient(user: any, algorithm: AlgorithmTypeString = 'ES256K', nodeUrl?: string) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
         const keypair = await this.getPrivateKey(algorithm);
@@ -154,7 +141,6 @@ export class Wallet {
     }
 
     public async getImportKey(id: string) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         const content = await this.db.get(id);
         return content;
@@ -169,7 +155,6 @@ export class Wallet {
      * @param value 
      */
     public async setImportKey(id: string, value: object) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
         await this.db.put({
             _id: id,
@@ -179,8 +164,6 @@ export class Wallet {
     public async createWallet(password: string, onPassphrase: any, mnemonic?: string) {
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
-        this.session.authenticated = true;
-        this.session.id = id;
 
         await this.db.put({
             _id: id + 'x',
@@ -267,7 +250,6 @@ export class Wallet {
     }
 
     public async getPrivateKey(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
 
 
         const ks: KeystoreDbModel = await this.db.get(this.id);
@@ -286,19 +268,16 @@ export class Wallet {
     }
 
     public async getPrivateKeyExports(algorithm: AlgorithmTypeString) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
         const ks: KeystoreDbModel = await this.db.get(this.id);
         return ks.keypairExports[algorithm];
     }
 
 
-    public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+    public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any): Promise<[Error, any?]> {
 
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
 
-        this.onRequestPassphrase.next({ type: 'wallet' });
-
-        const p = await this.onRequestPassphrase.pipe(
+        const p = await this.onRequestPassphraseWallet.pipe(
             filter(i => i.type === 'ui')
         ).toPromise();
 
@@ -310,8 +289,19 @@ export class Wallet {
 
     }
 
-    public async signJWTFromPublic(publicKey: any, payload: any, options: any) {
-        return JWTService.sign(publicKey, payload, options);
+    public async signJWTFromPublic(publicKey: any, payload: any, options: any): Promise<[Error, any?]> {
+
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload });
+
+        const p = await this.onRequestPassphraseWallet.pipe(
+            filter(i => i.type === 'ui')
+        ).toPromise();
+
+        if (p.passphrase === await this.db.get(this.id + 'x')) {
+            return [,JWTService.sign(publicKey, payload, options)];
+        }
+
+        return [new Error('invalid_passphrase')]
     }
 
     /**
@@ -319,12 +309,11 @@ export class Wallet {
      * @param algorithm 
      * @param payload 
      */
-    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean): Promise<[Error, any?]> {
 
-        this.onRequestPassphrase.next({ type: 'wallet' });
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
 
-        const p = await this.onRequestPassphrase.pipe(
+        const p = await this.onRequestPassphraseWallet.pipe(
             filter(i => i.type === 'ui')
         ).toPromise();
 
@@ -336,12 +325,11 @@ export class Wallet {
 
     }
 
-    public async decryptJWE(algorithm: AlgorithmTypeString, payload: any) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+    public async decryptJWE(algorithm: AlgorithmTypeString, payload: any): Promise<[Error, any?]> {
 
-        this.onRequestPassphrase.next({ type: 'wallet' });
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
 
-        const p = await this.onRequestPassphrase.pipe(
+        const p = await this.onRequestPassphraseWallet.pipe(
             filter(i => i.type === 'ui')
         ).toPromise();
 
@@ -359,12 +347,11 @@ export class Wallet {
      * @param algorithm 
      * @param payload 
      */
-    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean) {
-        if (this.session.id !== this.id && !this.session.authenticated) [new Error('locked')];
+    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean):  Promise<[Error, any?]> {
 
-        this.onRequestPassphrase.next({ type: 'wallet' });
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
 
-        const p = await this.onRequestPassphrase.pipe(
+        const p = await this.onRequestPassphraseWallet.pipe(
             filter(i => i.type === 'ui')
         ).toPromise();
 
@@ -380,13 +367,13 @@ export class Wallet {
     public static generateMnemonic() {
         return ethers.Wallet.createRandom().mnemonic;
     }
- 
+
     public async open(id: string) {
         this.id = id;
-        this.onRequestPassphrase.next({ type: 'wallet' });
-        this.onRequestPassphrase2.subscribe(p => {
+        this.onRequestPassphraseSubscriber.next({ type: 'wallet' });
+        this.onRequestPassphraseWallet.subscribe(p => {
             this.db.crypto(p.passphrase);
-            this.onRequestPassphrase.next({ type: 'done' })
+            this.onRequestPassphraseSubscriber.next({ type: 'done' })
 
         });
     }
