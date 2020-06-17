@@ -17,12 +17,35 @@
 
 ####  Wallet
 
-`Wallet.createHDWallet`
+A wallet instance is always required to start working with Wallet API. You configure RxJS subjects to handle password management between UI subscriber and Wallet API.
 
-Creates a new random HD Wallet
+`Creating a wallet with createWallet`
+
 
 ```typescript
-  const keystore = await Wallet.createHDWallet({ password: 'password123' });
+    const wallet = new Wallet();
+    this.wallet.onRequestPassphraseSubscriber.subscribe(async (i) => {
+      this.canUnlock = true;
+      this.loading = true;
+      if (i.type === 'wallet') {
+        this.passphraseSubject.subscribe((passphrase) =>
+          this.wallet.onRequestPassphraseWallet.next({ type: 'ui', passphrase })
+        );
+      } else {
+        this.canUnlock = false;
+        this.loading = false;
+      }
+    });
+
+    let { id } = await wallet.createWallet(this.password, null, mnemonic);
+```
+
+`Unlocking using open`
+
+Now with that id, be sure to save it somewhere, you always query the Wallet API DB to open the wallet. It will ask you for your password if you configure the RxJS Subscribers as defined in the previous step.
+
+```typescript
+ await this.wallet.open(id);
 ```
 
 
@@ -35,13 +58,6 @@ Creates a new mnemonic
      const selectedWallet = await Wallet.createHDWallet({ mnemonic, password: '123password' });
 ```
 
-`Wallet.unlock`
-
-Unlocks an existing wallet
-
-```typescript
-      const wallet = await Wallet.unlock(selectedWallet, '123password');
-```
 
 `deriveChild`
 
@@ -69,10 +85,6 @@ Creates a new child HD Wallet
 Creates a new Ed25519 curve 
 
 ```typescript
-    const mnemonic = Wallet.generateMnemonic();
-    const opts = { mnemonic, password: '123password' };
-    const keystore = await Wallet.createHDWallet(opts);
-    const wallet = await Wallet.unlock(keystore, opts.password);
     const kp = await wallet.getEd25519();
 ```
 
@@ -82,10 +94,6 @@ Creates a new Ed25519 curve
 Creates a new P256/secp256r1 curve 
 
 ```typescript
-    const mnemonic = Wallet.generateMnemonic();
-    const opts = { mnemonic, password: '123password' };
-    const keystore = await Wallet.createHDWallet(opts);
-    const wallet = await Wallet.unlock(keystore, opts.password);
     const kp = await wallet.getP256();
 ```
 
@@ -95,10 +103,6 @@ Creates a new P256/secp256r1 curve
 Creates a new secp256k1 curve 
 
 ```typescript
-    const mnemonic = Wallet.generateMnemonic();
-    const opts = { mnemonic, password: '123password' };
-    const keystore = await Wallet.createHDWallet(opts);
-    const wallet = await Wallet.unlock(keystore, opts.password);
     const kp = await wallet.getES256k();
 ```
 
@@ -108,10 +112,6 @@ Creates a new secp256k1 curve
 Creates a new RSA key pair. This key pair is not generated from HD Wallet seed. 
 
 ```typescript
-    const mnemonic = Wallet.generateMnemonic();
-    const opts = { mnemonic, password: '123password' };
-    const keystore = await Wallet.createHDWallet(opts);
-    const wallet = await Wallet.unlock(keystore, opts.password);
     const kp = await wallet.getRSA256Standalone();
 ```
 
@@ -120,10 +120,6 @@ Creates a new RSA key pair. This key pair is not generated from HD Wallet seed.
 Creates a new BLS key pair. Returns an object. 
 
 ```typescript
-    const mnemonic = Wallet.generateMnemonic();
-    const opts = { mnemonic, password: '123password' };
-    const keystore = await Wallet.createHDWallet(opts);
-    const wallet = await Wallet.unlock(keystore, opts.password);
     const kp = wallet.getBlsMasterKey();
     const deriveValidatorKey1 = await kp.deriveValidatorKeys(1);
 ```
