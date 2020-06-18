@@ -9,7 +9,7 @@ export class CMSSigner {
   public static sign(
     pemCertificate: string,
     signingKey: string,
-    content: Uint8Array,
+    content: Buffer,
     detached: boolean = true
   ) {
     const privateKey = forge.pki.privateKeyFromPem(signingKey);
@@ -50,7 +50,7 @@ export class CMSSigner {
 
     const raw = forge.asn1.toDer(p7.toAsn1()).getBytes();
     const signed = arrayBufferConcat(raw, content);
-    return { pem: new TextEncoder().encode(pem), signed };
+    return pem;
   }
 
   static buf2hex(buffer) {
@@ -64,3 +64,4 @@ export class CMSSigner {
     return true;
   }
 }
+    
