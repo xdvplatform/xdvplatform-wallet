@@ -1,6 +1,6 @@
 {
   "name": "xdvplatform-wallet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "src/index.ts",
   "scripts": {
@@ -71,8 +71,8 @@
     "slip39": "^0.1.7",
     "solido-provider-ethers": "^1.1.1",
     "text-encoding-polyfill": "^0.6.7",
-    "web-xml-crypto": "^1.5.0",
     "webcrypto": "^0.1.1",
+    "xml-crypto": "^1.5.3",
     "xmlbuilder2": "^2.1.2"
   }
 }

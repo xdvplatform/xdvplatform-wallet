@@ -1,7 +1,7 @@
 import * as forge from 'node-forge';
 import { create } from 'xmlbuilder2';
+import { FileKeyInfo, SignedXml } from 'xml-crypto';
 import { JWK } from 'jose';
-import { SignedXml } from 'web-xml-crypto';
 
 function KeyInfoProvider(pem: string) {
 
@@ -51,7 +51,7 @@ export class XmlDsig {
     public static signFEDocument(signingKey: string, selfSignedCert: string, document: string) {
         const sig = new SignedXml()
         sig.addReference("//*[local-name(.)='rFE']", ['http://www.w3.org/2001/10/xml-exc-c14n#',
-            'http://www.w3.org/2000/09/xmldsig#enveloped-signature',]
+            'http://www.w3.org/2000/09/xmldsig#enveloped-signature',].reverse()
             , 'http://www.w3.org/2001/04/xmlenc#sha256', "", "", "", true)
         sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
         sig.signatureAlgorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
@@ -62,5 +62,30 @@ export class XmlDsig {
         let feSigned = create(output).end({ format: 'object' });
 
         return { xml: output, json: feSigned };
+    }
+
+    /**
+     * Verifies a FE DGI invoice documentt
+     * @param selfSignedCert Certification generated from a RSA key
+     * @param document An XML documents
+     */
+    public static verifyFEDocument(selfSignedCert: string, document: string) {
+        const option = {implicitTransforms: ['http://www.w3.org/2001/10/xml-exc-c14n#',
+        'http://www.w3.org/2000/09/xmldsig#enveloped-signature',]};
+
+        const sig = new SignedXml(null, option);
+
+        // sig.addReference("//*[local-name(.)='rFE']", ['http://www.w3.org/2001/10/xml-exc-c14n#',
+        //     'http://www.w3.org/2000/09/xmldsig#enveloped-signature',]
+        //     , 'http://www.w3.org/2001/04/xmlenc#sha256', "", "", "", true)
+        // sig.canonicalizationAlgorithm = '';
+        sig.signatureAlgorithm = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
+        const dom = create(document);
+        const signature = dom.first().find(n => n.node.nodeName === 'Signature');
+        sig.canonicalizationAlgorithm = 'http://www.w3.org/2001/10/xml-exc-c14n#';
+    
+        sig.keyInfoProvider = new FileKeyInfo(selfSignedCert)
+        sig.loadSignature(signature.node);
+        return sig.checkSignature(document);
     }
 }

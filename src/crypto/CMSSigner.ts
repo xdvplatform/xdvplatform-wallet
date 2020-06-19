@@ -60,8 +60,9 @@ export class CMSSigner {
       .join("");
   }
 
-  static validatePEM(cert: Uint8Array, pvk: Uint8Array, pem: Uint8Array) {
-    return true;
+  static validatePEM(cert: Buffer, pem: string) {
+    const p7 = forge.pkcs7.messageFromPem(pem);
+    return  p7.findRecipient(cert);
+  
   }
 }
-    
