@@ -17,6 +17,7 @@ import { JWE, JWK } from 'node-jose';
 import { JWTService } from './JWTService';
 import { KeyConvert } from './KeyConvert';
 import { LDCryptoTypes } from './LDCryptoTypes';
+import { resolve } from 'dns';
 import { sign } from '@erebos/secp256k1';
 import { SwarmFeed } from '../swarm/feed';
 
@@ -73,6 +74,7 @@ export class Wallet {
     private db = new PouchDB('xdv:web:wallet');
     ethersWallet: any;
     mnemonic: any;
+    accepted: any;
     constructor() {
         PouchDB.plugin(require('crypto-pouch'));
     }
@@ -272,16 +274,22 @@ export class Wallet {
         return ks.keypairExports[algorithm];
     }
 
-
+    public async canUse() {
+        const init = this.accepted; 
+        return new Promise((resolve, reject) => {
+            setInterval(() => {
+                if (this.accepted !== init) return resolve(this.accepted)
+            }, 1000);
+        });
+    }
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any): Promise<[Error, any?]> {
 
-        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
-        const p = await this.onRequestPassphraseWallet.pipe(
-            filter(i => i.type === 'ui')
-        ).toPromise();
+        const canUseIt = await this.canUse();
 
-        if (p.passphrase === await this.db.get(this.id + 'x')) {
+
+        if (canUseIt) {
             const { pem } = await this.getPrivateKeyExports(algorithm);
             return [, await JWTService.sign(pem, payload, options)];
         }
@@ -291,14 +299,13 @@ export class Wallet {
 
     public async signJWTFromPublic(publicKey: any, payload: any, options: any): Promise<[Error, any?]> {
 
-        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload });
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload });
 
-        const p = await this.onRequestPassphraseWallet.pipe(
-            filter(i => i.type === 'ui')
-        ).toPromise();
+        const canUseIt = await this.canUse();
 
-        if (p.passphrase === await this.db.get(this.id + 'x')) {
-            return [,JWTService.sign(publicKey, payload, options)];
+
+        if (canUseIt) {
+            return [, JWTService.sign(publicKey, payload, options)];
         }
 
         return [new Error('invalid_passphrase')]
@@ -311,13 +318,12 @@ export class Wallet {
      */
     public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean): Promise<[Error, any?]> {
 
-        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
-        const p = await this.onRequestPassphraseWallet.pipe(
-            filter(i => i.type === 'ui')
-        ).toPromise();
+        const canUseIt = await this.canUse();
 
-        if (p.passphrase === await this.db.get(this.id + 'x')) {
+
+        if (canUseIt) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
             return [, await JOSEService.encrypt([jwk], payload)];
         }
@@ -327,13 +333,12 @@ export class Wallet {
 
     public async decryptJWE(algorithm: AlgorithmTypeString, payload: any): Promise<[Error, any?]> {
 
-        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
-        const p = await this.onRequestPassphraseWallet.pipe(
-            filter(i => i.type === 'ui')
-        ).toPromise();
+        const canUseIt = await this.canUse();
 
-        if (p.passphrase === await this.db.get(this.id + 'x')) {
+
+        if (canUseIt) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
 
             return [, await JWE.createDecrypt(
@@ -347,15 +352,14 @@ export class Wallet {
      * @param algorithm 
      * @param payload 
      */
-    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean):  Promise<[Error, any?]> {
+    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean): Promise<[Error, any?]> {
 
-        this.onRequestPassphraseSubscriber.next({ type: 'wallet', payload, algorithm });
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
-        const p = await this.onRequestPassphraseWallet.pipe(
-            filter(i => i.type === 'ui')
-        ).toPromise();
+        const canUseIt = await this.canUse();
 
-        if (p.passphrase === await this.db.get(this.id + 'x')) {
+
+        if (canUseIt) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
             return [null, await JOSEService.encrypt([jwk, ...keys], payload)];
         }
@@ -371,10 +375,16 @@ export class Wallet {
     public async open(id: string) {
         this.id = id;
         this.onRequestPassphraseSubscriber.next({ type: 'wallet' });
-        this.onRequestPassphraseWallet.subscribe(p => {
-            this.db.crypto(p.passphrase);
-            this.onRequestPassphraseSubscriber.next({ type: 'done' })
+        this.onRequestPassphraseWallet.subscribe(async p => {
+            if (p.type !== 'ui') {
+                this.accepted = p.accepted;
 
+            } else {
+                this.db.crypto(p.passphrase);
+                const ks = await this.db.get(id);
+                this.mnemonic = ks.mnemonic;
+                this.onRequestPassphraseSubscriber.next({ type: 'done' })
+            }
         });
     }
 
