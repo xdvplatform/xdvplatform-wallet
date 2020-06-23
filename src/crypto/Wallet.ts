@@ -70,7 +70,10 @@ export class Wallet {
     public id: string;
     public onRequestPassphraseSubscriber: Subject = new Subject<string>();
     public onRequestPassphraseWallet: Subject = new Subject<string>();
-
+    public onSignExternal: Subject = new Subject<{
+        isEnabled: boolean;
+        signature: string | Buffer;
+    }>();
     private db = new PouchDB('xdv:web:wallet');
     ethersWallet: any;
     mnemonic: any;
@@ -107,11 +110,16 @@ export class Wallet {
             async (data) => {
                 if (this.onRequestPassphraseSubscriber.observers.length === 0) return sign(data, keypair);
                 this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload: data, algorithm });
+                const signExternalP = new Promise((resolve, reject) => this.onSignExternal.next({ isDIDSigner: true, payload: data, next: resolve }));
 
+                const signExternal = await signExternalP;
+                if (signExternal.isEnabled) {
+                    return signExternal.signature;
+                }
                 const canUseIt = await this.canUse();
-                if (canUseIt)
+                if (canUseIt) {
                     return sign(data, keypair);
-
+                }
 
             },
             user,
@@ -279,13 +287,23 @@ export class Wallet {
     }
 
     public async canUse() {
+        let ticket = null;
         const init = this.accepted;
         return new Promise((resolve, reject) => {
-            setInterval(() => {
-                if (this.accepted !== init) return resolve(this.accepted)
+            ticket = setInterval(() => {
+                if (this.accepted !== init) {
+                    clearInterval(ticket);
+                    return resolve(this.accepted);
+                }
             }, 1000);
         });
     }
+
+
+    public async signExternal() {
+        return this.onSignExternal.toPromise();
+    }
+
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any): Promise<[Error, any?]> {
 
         this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
