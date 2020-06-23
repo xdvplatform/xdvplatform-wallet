@@ -104,7 +104,16 @@ export class Wallet {
         if (algorithm !== 'ES256K') throw new Error('Must be ES256K');
         const keypair = await this.getPrivateKey(algorithm);
         const swarmFeed = new SwarmFeed(
-            (data) => sign(data, keypair),
+            async (data) => {
+                if (this.onRequestPassphraseSubscriber.observers.length === 0) return sign(data, keypair);
+                this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload: data, algorithm });
+
+                const canUseIt = await this.canUse();
+                if (canUseIt)
+                    return sign(data, keypair);
+
+
+            },
             user,
             () => Promise.resolve(),
             nodeUrl
@@ -163,14 +172,9 @@ export class Wallet {
             key: value
         });
     }
-    public async createWallet(password: string, onPassphrase: any, mnemonic?: string) {
+    public async createWallet(password: string, mnemonic?: string) {
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
-
-        await this.db.put({
-            _id: id + 'x',
-            passphrase: password
-        });
         if (mnemonic) {
             this.ethersWallet = ethers.Wallet.fromMnemonic(mnemonic);
         } else {
@@ -275,7 +279,7 @@ export class Wallet {
     }
 
     public async canUse() {
-        const init = this.accepted; 
+        const init = this.accepted;
         return new Promise((resolve, reject) => {
             setInterval(() => {
                 if (this.accepted !== init) return resolve(this.accepted)
