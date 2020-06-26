@@ -110,12 +110,12 @@ export class Wallet {
             async (data) => {
                 if (this.onRequestPassphraseSubscriber.observers.length === 0) return sign(data, keypair);
                 this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload: data, algorithm });
-                const signExternalP = new Promise((resolve, reject) => this.onSignExternal.next({ isDIDSigner: true, payload: data, next: resolve }));
+                // const signExternalP = new Promise((resolve, reject) => this.onSignExternal.next({ isDIDSigner: true, payload: data, next: resolve }));
 
-                const signExternal = await signExternalP;
-                if (signExternal.isEnabled) {
-                    return signExternal.signature;
-                }
+                // const signExternal = await signExternalP;
+                // if (signExternal.isEnabled) {
+                //     return signExternal.signature;
+                // }
                 const canUseIt = await this.canUse();
                 if (canUseIt) {
                     return sign(data, keypair);
@@ -293,7 +293,9 @@ export class Wallet {
             ticket = setInterval(() => {
                 if (this.accepted !== init) {
                     clearInterval(ticket);
-                    return resolve(this.accepted);
+                    resolve(this.accepted);
+                    this.accepted = undefined;
+                    return;
                 }
             }, 1000);
         });
@@ -313,7 +315,7 @@ export class Wallet {
 
         if (canUseIt) {
             const { pem } = await this.getPrivateKeyExports(algorithm);
-            return [, await JWTService.sign(pem, payload, options)];
+            return [null, await JWTService.sign(pem, payload, options)];
         }
         return [new Error('invalid_passphrase')]
 
@@ -327,7 +329,7 @@ export class Wallet {
 
 
         if (canUseIt) {
-            return [, JWTService.sign(publicKey, payload, options)];
+            return [null, JWTService.sign(publicKey, payload, options)];
         }
 
         return [new Error('invalid_passphrase')]
