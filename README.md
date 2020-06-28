@@ -534,59 +534,7 @@ Signs a CMS document
 
 #### API
 
-####  DIDMethodXDV - XDV DID Method
-
-XDV DID method is based on IPLD. Before using it,  it needs to be initialize. After initializing, generate
-a new session key (the DID key) and then use `DIDDocumentBuilder` to create a DID document.
-
-`Usage`
-
-```typescript
-    const ipld = new IpldClient();
-    const xdvMethod = new DIDMethodXDV(ipld);
-
-
-    // create ipld instance
-    await ipld.initialize();
-
-    // ....
-
-    const kp = wallet.getP256();
-    const kpJwk = await KeyConvert.getP256(kp);
-
-    // Create LD Crypto Suite - p256 / Sepc256r1
-    const ldCrypto = await KeyConvert
-    .createLinkedDataJsonFormat(LDCryptoTypes.Sepc256r1, kpJwk.ldSuite);
-
-    // Create IPFS key storage lock
-    const session = await xdvMethod.createIpldSession(kpJwk.pem);
-
-    // Create DID document with an did-ipid based issuer
-    const did = await DIDDocumentBuilder
-    .createDID({
-        issuer: session.key,
-        verificationKeys: [ldCrypto.toPublicKey()],
-        authenticationKeys: [ldCrypto.toAuthorizationKey()]
-    });
-
-
-    // Always store DID in IPLD
-    cid = await ipld.createNode({
-        ...did,
-    });
-
-```
-
-Resolving is a different, you'll ned both CID and DID.
-
-```typescript
-    // get document with a CID and DID
-    const resolver = await xdvMethod.getResolver(cid);
-    const doc = await resolver.xdv(did);
-
-```
-
-
+ 
 
 `Wallet.createHDWallet`
 
@@ -603,18 +551,6 @@ Creates a new random HD Wallet
 - Includes most of the API specifications for `Factura Electronica DGI Panama` up to September 2018 specification
 - Planned features: `CUFE` generation and `QR` generation
 
-#### `ipld`
-
-- IPLD client
-
-#### `storage`
-
-- XDV storage schemas for IPLD
-
-
-#### `comm`
-
-- IPNS PubSub
 
 
 #### `dv`

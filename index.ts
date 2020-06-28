@@ -5,5 +5,4 @@ export * from './src/fe/Totales';
 export * from './src/fe/ItemSchema';
 export * from './src/fe/TypedRFESchema';
 export * from './src/fe/TypedRFE';
-export * from './src/ipld/IpldClient';
 export *  from './src/index';
