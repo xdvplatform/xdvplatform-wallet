@@ -1,4 +1,5 @@
 import PouchDB from 'pouchdb';
+import { createKeyPair, sign } from '@erebos/secp256k1';
 import { ec, eddsa } from 'elliptic';
 import { ethers } from 'ethers';
 import { getMasterKeyFromSeed } from 'ed25519-hd-key';
