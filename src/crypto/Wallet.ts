@@ -1,15 +1,7 @@
 import PouchDB from 'pouchdb';
 import { ec, eddsa } from 'elliptic';
 import { ethers } from 'ethers';
-import { filter, mergeMap, of } from 'rxjs/operators';
-import {
-    from,
-    interval,
-    Observable,
-    of,
-    Subject
-    } from 'rxjs';
-import { getMasterKeyFromSeed, getPublicKey } from 'ed25519-hd-key';
+import { getMasterKeyFromSeed } from 'ed25519-hd-key';
 import { HDNode } from 'ethers/utils';
 import { IsDefined, IsOptional, IsString } from 'class-validator';
 import { JOSEService } from './JOSEService';
@@ -17,18 +9,12 @@ import { JWE, JWK } from 'node-jose';
 import { JWTService } from './JWTService';
 import { KeyConvert } from './KeyConvert';
 import { LDCryptoTypes } from './LDCryptoTypes';
-import { resolve } from 'dns';
-import { sign } from '@erebos/secp256k1';
+import { Subject } from 'rxjs';
 import { SwarmFeed } from '../swarm/feed';
-
 import {
-    generateRandomSecretKey,
     deriveKeyFromMnemonic,
-    deriveKeyFromEntropy,
-    deriveKeyFromMaster,
     deriveEth2ValidatorKeys,
 } from "@chainsafe/bls-keygen";
-
 export type AlgorithmTypeString = keyof typeof AlgorithmType;
 export enum AlgorithmType {
     RSA,
@@ -89,7 +75,7 @@ export class Wallet {
      */
     public getSwarmNodeQueryable(user: any, nodeUrl?: string) {
         const swarmFeed = new SwarmFeed(
-            (data) => Promise.resolve(false),
+            () => Promise.resolve(false),
             user,
             nodeUrl,
         );
@@ -263,20 +249,20 @@ export class Wallet {
         return this;
     }
 
-    public async getPrivateKey(algorithm: AlgorithmTypeString) {
+    public async getPrivateKey(algorithm: AlgorithmTypeString): Promise<ec.KeyPair | eddsa.KeyPair> {
 
 
         const ks: KeystoreDbModel = await this.db.get(this.id);
 
         if (algorithm === 'ED25519') {
             const kp = new eddsa('ed25519');
-            return kp.keyFromSecret(ks.keypairs.ED25519);
+            return kp.keyFromSecret(ks.keypairs.ED25519) as eddsa.KeyPair;
         } else if (algorithm === 'P256') {
             const kp = new ec('p256');
-            return kp.keyFromPrivate(ks.keypairs.P256);
+            return kp.keyFromPrivate(ks.keypairs.P256) as ec.KeyPair;
         } else if (algorithm === 'ES256K') {
             const kp = new ec('secp256k1');
-            return kp.keyFromPrivate(ks.keypairs.ES256K);
+            return kp.keyFromPrivate(ks.keypairs.ES256K) as ec.KeyPair;
         }
 
     }
@@ -289,7 +275,7 @@ export class Wallet {
     public async canUse() {
         let ticket = null;
         const init = this.accepted;
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             ticket = setInterval(() => {
                 if (this.accepted !== init) {
                     clearInterval(ticket);
@@ -306,6 +292,33 @@ export class Wallet {
         return this.onSignExternal.toPromise();
     }
 
+
+    /**
+     * Signs with selected algorithm
+     * @param algorithm Algorithm
+     * @param payload Payload as buffer
+     * @param options options
+     */
+    public async sign(algorithm: AlgorithmTypeString, payload: Buffer): Promise<[Error, any?]> {
+
+        this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
+
+        const canUseIt = await this.canUse();
+
+
+        if (canUseIt) {
+            const key: ec.KeyPair | eddsa.KeyPair = await this.getPrivateKey(algorithm);
+            return [null, key.sign(Buffer).toHex()];
+        }
+        return [new Error('invalid_passphrase')]
+    }
+
+    /**
+     * Signs a JWT for single recipient
+     * @param algorithm Algorithm
+     * @param payload Payload as buffer
+     * @param options options
+     */
     public async signJWT(algorithm: AlgorithmTypeString, payload: any, options: any): Promise<[Error, any?]> {
 
         this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
@@ -336,11 +349,13 @@ export class Wallet {
     }
 
     /**
-     * Signs JWE
-     * @param algorithm 
-     * @param payload 
+     * Encrypts JWE
+     * @param algorithm Algorithm 
+     * @param payload Payload as buffer
+     * @param overrideWithKey Uses this key instead of current wallet key
+     * 
      */
-    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean): Promise<[Error, any?]> {
+    public async encryptJWE(algorithm: AlgorithmTypeString, payload: any, overrideWithKey: any): Promise<[Error, any?]> {
 
         this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
@@ -348,8 +363,12 @@ export class Wallet {
 
 
         if (canUseIt) {
-            const { jwk } = await this.getPrivateKeyExports(algorithm);
-            return [, await JOSEService.encrypt([jwk], payload)];
+            let jwk;
+            if (overrideWithKey === null) {
+                const keys = await this.getPrivateKeyExports(algorithm);
+                jwk = keys.jwk;
+            }
+            return [null, await JOSEService.encrypt([jwk], payload)];
         }
         return [new Error('invalid_passphrase')]
 
@@ -365,18 +384,18 @@ export class Wallet {
         if (canUseIt) {
             const { jwk } = await this.getPrivateKeyExports(algorithm);
 
-            return [, await JWE.createDecrypt(
+            return [null, await JWE.createDecrypt(
                 await JWK.asKey(jwk, 'jwk')
             ).decrypt(payload)];
         }
         return [new Error('invalid_passphrase')]
     }
     /**
-     * Signs JWE with multiple keys
+     * Encrypts JWE with multiple keys
      * @param algorithm 
      * @param payload 
      */
-    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any, isPublicKey?: boolean): Promise<[Error, any?]> {
+    public async encryptMultipleJWE(keys: any[], algorithm: AlgorithmTypeString, payload: any): Promise<[Error, any?]> {
 
         this.onRequestPassphraseSubscriber.next({ type: 'request_tx', payload, algorithm });
 
@@ -404,10 +423,14 @@ export class Wallet {
                 this.accepted = p.accepted;
 
             } else {
-                this.db.crypto(p.passphrase);
-                const ks = await this.db.get(id);
-                this.mnemonic = ks.mnemonic;
-                this.onRequestPassphraseSubscriber.next({ type: 'done' })
+                try {
+                    this.db.crypto(p.passphrase);
+                    const ks = await this.db.get(id);
+                    this.mnemonic = ks.mnemonic;
+                    this.onRequestPassphraseSubscriber.next({ type: 'done' })
+                } catch (e) {
+                    this.onRequestPassphraseSubscriber.next({ type: 'error', error: e })
+                }
             }
         });
     }
@@ -445,7 +468,7 @@ export class Wallet {
     public getEd25519(): eddsa.KeyPair {
         const ed25519 = new eddsa('ed25519');
         // const hdkey = HDKey.fromExtendedKey(HDNode.fromMnemonic(this.mnemonic).extendedKey);
-        const { key, chainCode } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.mnemonic));
+        const { key } = getMasterKeyFromSeed(ethers.utils.HDNode.mnemonicToSeed(this.mnemonic));
         const keypair = ed25519.keyFromSecret(key);
         return keypair;
     }

@@ -22,7 +22,7 @@ export class X509Info {
 
 export class KeyConvert {
 
-    public static async getX509RSA(kp: JWK.RSAKey, passphrase?: string) {
+    public static async getX509RSA(kp: JWK.RSAKey) {
 
 
         let jwk = kp;
@@ -266,7 +266,7 @@ export class KeyConvert {
  * @param kp Key pair
  * @param passphrase passphrase 
  */
-    public static getRSA(rsa: any, passphrase?: string) {
+    public static getRSA(rsa: any) {
         return {
             jwk: JWK.asKey(rsa, "json"),
             pem: JWK.asKey(rsa, 'pkcs8')
