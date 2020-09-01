@@ -1,6 +1,6 @@
 {
-  "name": "xdvplatform-wallet",
-  "version": "2.0.12",
+  "name": "cea-crypto-wallet",
+  "version": "1.0.0",
   "description": "",
   "main": "lib/index.js",
   "scripts": {
@@ -27,8 +27,6 @@
     "typescript": "^3.9.2"
   },
   "dependencies": {
-    "@chainsafe/bls": "git+https://github.com/ChainSafe/bls.git",
-    "@chainsafe/bls-hd-key": "0.0.1",
     "@decent-bet/solido": "^1.1.6",
     "@erebos/bzz-browser": "^0.13.0",
     "@erebos/bzz-feed": "^0.13.2",
@@ -57,7 +55,6 @@
     "jwt-ed25519-tn": "0.0.3",
     "moment": "^2.26.0",
     "multihashing-async": "^0.8.1",
-    "noble-bls12-381": "^0.2.3",
     "node-forge": "^0.9.1",
     "node-jose": "^1.1.4",
     "pouchdb": "^7.2.1",

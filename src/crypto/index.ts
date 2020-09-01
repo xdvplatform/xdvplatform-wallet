@@ -5,7 +5,4 @@ export * from './JWTPayload';
 export * from './JWTService';
 export * from './KeyConvert';
 export * from './LDCryptoTypes';
-export * from './CMSSigner';
-export * from './X509';
-export * from './XmlDsig';
 export * from './Wallet';
