@@ -1,19 +1,12 @@
 import { JWTPayload } from './JWTPayload';
-import * as jose from 'node-jose';
-const { JWT, JWK } = jose;
-const jsonwebtoken = require('jsonwebtoken');
-const ed25519 = require('jwt-ed25519-tn');
-
-
+import jsonwebtoken from 'jsonwebtoken';
 
 export class JWTService {
-    constructor() {
-
-    }
-
+    
     public static decodeWithSignature(jwt: string) {
+        const jwtDecoded: any = jsonwebtoken.decode(jwt, { 'complete': true });
         const decoded = {
-            ...jsonwebtoken.decode(jwt, { 'complete': true }),
+            ...jwtDecoded,
             data: `${jwt.split('.')[0]}.${jwt.split('.')[1]}`,
         };
 
@@ -45,8 +38,8 @@ export class JWTService {
      * @param signature Signature
      * @param options JWT payload config
      */
-    public static async verify(key: any, signature: any, audience: string | string[]) {
-        return jsonwebtoken.verify(signature,key, { key: key, algorithm: 'HS256'})
+    public static async verify(key: any, signature: any) {
+        return jsonwebtoken.verify(signature,key, { algorithms: ['HS256']})
     }
 
 

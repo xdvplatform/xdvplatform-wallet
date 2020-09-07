@@ -4,12 +4,12 @@ import { composePrivateKey, decomposePrivateKey } from 'crypto-key-composer';
 import { ec, eddsa } from 'elliptic';
 import { ethers } from 'ethers';
 import { LDCryptoTypes } from './LDCryptoTypes';
-import { PrivateKey } from './../../src/did/PrivateKey';
+import { PrivateKey } from '../did/PrivateKey';
 import { PublicKey } from '../did';
-const Rasha = require('rasha');
-const { JWT, JWK } = jose;
-const jwkToPem = require('jwk-to-pem');
-const ECKey = require('ec-key');
+import Rasha from 'rasha';
+const { JWK } = jose;
+import ECKey from 'ec-key';
+import { JWK } from 'node-jose';
 
 export class X509Info {
     countryName: string;
@@ -78,7 +78,7 @@ export class KeyConvert {
                 d: kp.getPrivate().toArrayLike(Buffer)
             }
         }, options);
-        
+
         if (passphrase) {
             return {
                 der: composeDerKey,
@@ -143,6 +143,7 @@ export class KeyConvert {
             return {
                 der: composeDerKey,
                 pem: composePemKey,
+                ldJsonPublic: null
             }
         }
         const keys = new ECKey(composePemKey, 'pem');
@@ -156,6 +157,7 @@ export class KeyConvert {
             der: composeDerKey,
             jwk: keys.toJSON(true),
             pem: composePemKey,
+            ldJsonPublic: null
             ldSuite,
         };
     }
@@ -206,11 +208,12 @@ export class KeyConvert {
             der: composeDerKey,
             //  jwk: keys.toJSON(),
             pem: composePemKey,
+            ldJsonPublic: null
         };
     }
 
 
-    public static async createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false): (PrivateKey) {
+    public static createLinkedDataJsonFormat(algorithm: LDCryptoTypes, key: KeyLike, hasPrivate = false): PublicKey | PrivateKey {
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
         switch (algorithm) {
 

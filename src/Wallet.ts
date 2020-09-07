@@ -11,11 +11,11 @@ import { JWTService } from './JWTService';
 import { KeyConvert } from './KeyConvert';
 import { LDCryptoTypes } from './LDCryptoTypes';
 import { Subject } from 'rxjs';
-import { SwarmFeed } from '../swarm/feed';
 import {
     deriveKeyFromMnemonic,
     deriveEth2ValidatorKeys,
 } from "@chainsafe/bls-keygen";
+import { WalletStorage } from './key-storage';
 export type AlgorithmTypeString = keyof typeof AlgorithmType;
 export enum AlgorithmType {
     RSA,
@@ -42,48 +42,24 @@ export class WalletOptions {
 }
 
 
-export interface KeystoreDbModel {
-    _id: any;
-    keypairs: KeyStoreModel;
-    keystoreSeed: any;
-    mnemonic: string;
-    keypairExports: KeyStoreModel;
-    publicKeys?: any;
-}
+export class TestWallet {
 
-export interface KeyStoreModel { BLS?: any, ES256K: any; P256: any; RSA: any; ED25519: any; }
+    constructor(private storage: WalletStorage) {
+        
+    }
 
-export class Wallet {
+
     public id: string;
     public onRequestPassphraseSubscriber: Subject = new Subject<string>();
     public onRequestPassphraseWallet: Subject = new Subject<string>();
-    public onSignExternal: Subject = new Subject<{
-        isEnabled: boolean;
-        signature: string | Buffer;
-    }>();
-    private db = new PouchDB('xdv:web:wallet');
+
+    private db = new PouchDB('cea:web:wallet');
+
     ethersWallet: any;
     mnemonic: any;
     accepted: any;
-    constructor() {
-        PouchDB.plugin(require('crypto-pouch'));
-    }
 
 
-    /**
-     * Creates a new queryable swarm feed
-     * @param user 
-     */
-    public getSwarmNodeQueryable(user: any, nodeUrl?: string) {
-        const swarmFeed = new SwarmFeed(
-            () => Promise.resolve(false),
-            user,
-            nodeUrl,
-        );
-        swarmFeed.initialize();
-
-        return swarmFeed;
-    }
 
     /**
      * Creates a new complete swarm feed
@@ -167,15 +143,14 @@ export class Wallet {
             key: value
         });
     }
-    public async createWallet(password: string, mnemonic?: string) {
+    
+    public async createWallet(password: string, mnemonic: string) {
+        if (!ethers.utils.HDNode.isValidMnemonic(mnemonic)) {
+            throw new Error('The Mnemonic is not valid.');
+        }
         const id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
-        if (mnemonic) {
-            this.ethersWallet = ethers.Wallet.fromMnemonic(mnemonic);
-        } else {
-            this.ethersWallet = ethers.Wallet.createRandom();
-            mnemonic = this.ethersWallet.mnemonic;
-        }
+        this.ethersWallet = ethers.Wallet.fromMnemonic(mnemonic);
 
         this.mnemonic = mnemonic
 
@@ -195,7 +170,7 @@ export class Wallet {
             RSA: '',
             BLS: '',
         }
-        // ED25519
+        // ED25519 did
         let kp = this.getEd25519();
         keystores.ED25519 = kp.getSecret('hex');
         keyExports.ED25519 = await KeyConvert.getEd25519(kp);
@@ -205,7 +180,7 @@ export class Wallet {
             false);
 
 
-        // ES256K
+        // ES256K blockchain
         kp = this.getES256K();
         keystores.ES256K = kp.getPrivate('hex');
         keyExports.ES256K = await KeyConvert.getES256K(kp);
@@ -216,17 +191,7 @@ export class Wallet {
             false
         );
 
-        // P256
-        kp = this.getP256();
-        keystores.P256 = kp.getPrivate('hex');
-        keyExports.P256 = await KeyConvert.getP256(kp);
-        keyExports.P256.ldJsonPublic = await KeyConvert.createLinkedDataJsonFormat(
-            LDCryptoTypes.JWK,
-            // @ts-ignore
-            { publicJwk: JSON.parse(keyExports.P256.ldSuite.publicKeyJwk) },
-            false
-        );
-        // RSA
+        // RSA for ipfs
         kp = await Wallet.getRSA256Standalone();
         keystores.RSA = kp.toJSON(true);
         keyExports.RSA = await KeyConvert.getRSA(kp);
@@ -286,11 +251,6 @@ export class Wallet {
                 }
             }, 1000);
         });
-    }
-
-
-    public async signExternal() {
-        return this.onSignExternal.toPromise();
     }
 
 
