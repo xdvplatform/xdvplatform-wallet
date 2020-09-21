@@ -9,7 +9,6 @@ import { PublicKey } from '../did';
 import Rasha from 'rasha';
 const { JWK } = jose;
 import ECKey from 'ec-key';
-import { JWK } from 'node-jose';
 
 export class X509Info {
     countryName: string;

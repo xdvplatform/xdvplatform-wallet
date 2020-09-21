@@ -12,7 +12,6 @@ export class PouchdbKeyStorage implements KeyStorage {
         return await this.db.put<T>(payload);
     }
 
-
     async find<T>(id: string): Promise<T> {
         return await this.db.get<T>(id);
     }
@@ -25,5 +24,4 @@ export class PouchdbKeyStorage implements KeyStorage {
     async enableCrypto(password: string): Promise<void> {
         await (this.db as any).crypto(password);
     }
-
 }
