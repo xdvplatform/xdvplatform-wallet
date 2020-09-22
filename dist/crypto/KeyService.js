@@ -53,7 +53,7 @@ class CEAKeyService {
             const es256kKeypair = this.getES256K(mnemonic);
             const keyStoreES256K = es256kKeypair.getPrivate('hex');
             const keyExportES256K = yield KeyConvert_1.KeyConvert.getES256K(es256kKeypair);
-            keyExportES256K.ldJsonPublic = KeyConvert_1.KeyConvert.createLinkedDataJsonFormat(LDCryptoTypes_1.LDCryptoTypes.JWK, { publicJwk: JSON.parse(keyExports.ES256K.ldSuite.publicKeyJwk) }, false);
+            keyExportES256K.ldJsonPublic = KeyConvert_1.KeyConvert.createLinkedDataJsonFormat(LDCryptoTypes_1.LDCryptoTypes.JWK, { publicJwk: JSON.parse(keyExportES256K.ldSuite.publicKeyJwk) }, false);
             const rsaKeypair = yield this.getRSA256Standalone();
             const keyStoreRSA = rsaKeypair.toJSON(true);
             const keyExportRSA = KeyConvert_1.KeyConvert.getRSA(rsaKeypair);

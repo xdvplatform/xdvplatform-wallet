@@ -75,7 +75,7 @@ export class CEAKeyService implements KeyService {
 		keyExportES256K.ldJsonPublic = KeyConvert.createLinkedDataJsonFormat(
 			LDCryptoTypes.JWK,
 			// @ts-ignore
-			{ publicJwk: JSON.parse(keyExports.ES256K.ldSuite.publicKeyJwk) },
+			{ publicJwk: JSON.parse(keyExportES256K.ldSuite.publicKeyJwk) },
 			false
 		);
 
