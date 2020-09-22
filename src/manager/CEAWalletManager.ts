@@ -23,7 +23,7 @@ export class CEAWalletManager implements WalletManager {
 			_id,
 			keypairs: stores,
 			keystoreSeed: keystoreMnemonicAsString,
-			mnemonic: mnemonic,
+			mnemonic,
 			keypairExports: exports,
 			created: new Date()
 		};
