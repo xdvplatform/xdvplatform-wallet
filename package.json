@@ -2,7 +2,7 @@
   "name": "cea-crypto-wallet",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "ts-mocha --timeout 540000 -p tsconfig.json src/**/*_spec.ts",
     "start": "ts-node --files ./src/index.ts",
