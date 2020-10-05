@@ -1,13 +1,21 @@
+import { ec, eddsa } from 'elliptic';
+import { JWE } from 'node-jose';
 import { JWTPayload } from '.';
-import { AlgorithmType } from './AlgorithmType';
+import { KeyStorageModel } from '../key-storage/KeyStorageModel';
+import { AlgorithmType, AlgorithmTypeString } from './AlgorithmType';
 
 export interface SigningService {
+	useKeyStorage(keyStorage: KeyStorageModel): SigningService;
+
 	/**
 	 * Signs with selected algorithm
 	 * @param algorithm Algorithm
 	 * @param payload Payload as buffer
 	 */
-	sign(algorithm: AlgorithmType, payload: Buffer): Promise<any>;
+	sign<T extends eddsa.KeyPair | ec.KeyPair>(
+		algorithm: AlgorithmType,
+		payload: Buffer
+	): string;
 
 	/**
 	 * Signs a JWT for single recipient
@@ -16,16 +24,12 @@ export interface SigningService {
 	 * @param options options
 	 */
 	signJWT(
-		algorithm: AlgorithmType,
+		algorithm: AlgorithmTypeString,
 		payload: Buffer,
 		options: JWTPayload
-	): Promise<any>;
+	): string;
 
-	signJWTFromPublic(
-		publicKey: any,
-		payload: any,
-		options: JWTPayload
-	): Promise<string>;
+	signJWTFromPublic(publicKey: any, payload: any, options: JWTPayload): string;
 
 	/**
 	 * Encrypts JWE
@@ -33,13 +37,17 @@ export interface SigningService {
 	 * @param payload Payload as buffer
 	 *
 	 */
-	encryptJWE(algorithm: AlgorithmType, payload: any): Promise<any>;
+	encryptJWE(algorithm: AlgorithmType, payload: any): Promise<string>;
 
-	encryptMultipleJWE(
-		keys: any[],
+	decryptJWE(
 		algorithm: AlgorithmType,
 		payload: any
-	): Promise<any>;
+	): Promise<JWE.DecryptResult>;
 
-	decryptJWE(algorithm: AlgorithmType, payload: any): Promise<any>;
+	/**
+	 * Verifies a signed message
+	 * @param key buffer
+	 * @param signature Signature
+	 */
+	verify(key: any, signature: any): string | object;
 }

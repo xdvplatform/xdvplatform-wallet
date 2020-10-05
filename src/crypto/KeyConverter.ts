@@ -18,10 +18,9 @@ export class X509Info {
 	commonName: string;
 }
 
-export class KeyConvert {
+export class KeyConverter {
 	public static async getX509RSA(kp: any) {
 		let jwk = kp;
-		// jwk = { alg: 'RS256', ...jwk };
 		const ldSuite = {
 			publicKeyJwk: kp.toJSON()
 		};
