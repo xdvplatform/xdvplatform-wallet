@@ -25,7 +25,7 @@ export class CEASigningService implements SigningService {
 	sign<T extends eddsa.KeyPair | ec.KeyPair>(
 		algorithm: AlgorithmType,
 		payload: Buffer
-	): string {
+	): ec.Signature | eddsa.Signature {
 		let kp: ec | eddsa;
 		let key: eddsa.KeyPair | ec.KeyPair;
 		this.validateKeyStorage();
@@ -45,9 +45,7 @@ export class CEASigningService implements SigningService {
 			default:
 				throw new Error('AlgorithmType not supported.');
 		}
-
-		// TODO: verify toHex for both key-pairs
-		return (key.sign(payload) as any).toHex();
+		return key.sign(payload);
 	}
 
 	signJWT(
@@ -88,7 +86,7 @@ export class CEASigningService implements SigningService {
 		this.validateKeyStorage();
 		// TODO: validate param type 'jwk' instead of private
 		const { jwk } = this.currentKeyStorage.keypairExports[algorithm];
-		const key = await JWK.asKey(jwk, 'private');
+		const key = await (JWK as any).asKey(jwk, 'jwk');
 		return await JWE.createDecrypt(key).decrypt(payload);
 	}
 

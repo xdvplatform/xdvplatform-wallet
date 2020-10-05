@@ -1,5 +1,5 @@
 {
-	"name": "cea-crypto-wallet",
+	"name": "@master-ventures/cea-crypto-wallet",
 	"version": "0.0.1",
 	"description": "",
 	"main": "dist/index.js",
@@ -7,7 +7,7 @@
 		"test": "ts-mocha --timeout 540000 -p tsconfig.json src/**/*_spec.ts",
 		"start": "ts-node --files ./src/index.ts",
 		"build": "tsc",
-		"prepublish": "build",
+		"prepublishOnly": "tsc",
 		"watch": "tsnd --respawn index.ts --watch ./src"
 	},
 	"keywords": [],

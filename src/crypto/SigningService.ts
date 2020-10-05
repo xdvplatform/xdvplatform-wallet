@@ -15,7 +15,7 @@ export interface SigningService {
 	sign<T extends eddsa.KeyPair | ec.KeyPair>(
 		algorithm: AlgorithmType,
 		payload: Buffer
-	): string;
+	): ec.Signature | eddsa.Signature;
 
 	/**
 	 * Signs a JWT for single recipient
