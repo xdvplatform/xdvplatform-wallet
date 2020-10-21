@@ -6,7 +6,18 @@ import { KeyStorage } from '../key-storage';
 import { KeyStorageModel } from '../key-storage/KeyStorageModel';
 
 export class CEAWalletManager implements WalletManager {
-	constructor(private keyService: KeyService, private keyStorage: KeyStorage) {}
+	constructor(
+		private _keyService: KeyService,
+		private _keyStorage: KeyStorage
+	) {}
+
+	public getKeyService() {
+		return this._keyService;
+	}
+
+	public getKeyStorage() {
+		return this._keyStorage;
+	}
 
 	async createWallet(password: string, mnemonic: string): Promise<Wallet> {
 		if (!ethers.utils.HDNode.isValidMnemonic(mnemonic)) {
@@ -16,7 +27,7 @@ export class CEAWalletManager implements WalletManager {
 		const wallet = ethers.Wallet.fromMnemonic(mnemonic);
 
 		const keystoreMnemonicAsString = await wallet.encrypt(password);
-		const { stores, exports } = await this.keyService.generateKeys(mnemonic);
+		const { stores, exports } = await this._keyService.generateKeys(mnemonic);
 		const _id = Buffer.from(ethers.utils.randomBytes(100)).toString('base64');
 
 		const model: KeyStorageModel = {
@@ -28,8 +39,8 @@ export class CEAWalletManager implements WalletManager {
 			created: new Date()
 		};
 
-		await this.keyStorage.enableCrypto(password);
-		const result = await this.keyStorage.save(model);
+		await this._keyStorage.enableCrypto(password);
+		const result = await this._keyStorage.save(model);
 		if (!result.ok) {
 			throw new Error('Wallet not saved to storage.');
 		}
@@ -49,8 +60,8 @@ export class CEAWalletManager implements WalletManager {
 
 	async unlockWallet(id: string, passphrase: string): Promise<Wallet> {
 		try {
-			await this.keyStorage.enableCrypto(passphrase);
-			const ks = await this.keyStorage.find<KeyStorageModel>(id);
+			await this._keyStorage.enableCrypto(passphrase);
+			const ks = await this._keyStorage.find<KeyStorageModel>(id);
 			const wallet = ethers.Wallet.fromMnemonic(ks.mnemonic);
 			const { address, mnemonic } = wallet;
 			return {
