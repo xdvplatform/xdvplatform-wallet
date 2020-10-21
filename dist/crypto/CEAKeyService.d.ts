@@ -1,13 +1,13 @@
 import { KeyModel } from './KeyModel';
-import { eddsa, ec } from 'elliptic';
-import { JWK } from 'node-jose';
+import { AlgorithmType } from './AlgorithmType';
 import { KeyService } from './KeyService';
 export declare class CEAKeyService implements KeyService {
-    getEd25519(mnemonic: string): eddsa.KeyPair;
-    getP256(mnemonic: string): ec.KeyPair;
-    getES256K(mnemonic: string): ec.KeyPair;
-    getBlsMasterKey(mnemonic: string): any;
-    getRSA256Standalone(len?: number): Promise<JWK.Key>;
+    getPrivateKey(algorithm: AlgorithmType, keyStore: KeyModel): string;
+    private getEd25519;
+    private getP256;
+    private getES256K;
+    private getBlsMasterKey;
+    private getRSA256Standalone;
     generateKeys(mnemonic: string): Promise<{
         stores: KeyModel;
         exports: KeyModel;

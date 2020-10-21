@@ -12,9 +12,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CEAWalletManager = void 0;
 const ethers_1 = require("ethers");
 class CEAWalletManager {
-    constructor(keyService, keyStorage) {
-        this.keyService = keyService;
-        this.keyStorage = keyStorage;
+    constructor(_keyService, _keyStorage) {
+        this._keyService = _keyService;
+        this._keyStorage = _keyStorage;
+    }
+    getKeyService() {
+        return this._keyService;
+    }
+    getKeyStorage() {
+        return this._keyStorage;
     }
     createWallet(password, mnemonic) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,7 +29,7 @@ class CEAWalletManager {
             }
             const wallet = ethers_1.ethers.Wallet.fromMnemonic(mnemonic);
             const keystoreMnemonicAsString = yield wallet.encrypt(password);
-            const { stores, exports } = yield this.keyService.generateKeys(mnemonic);
+            const { stores, exports } = yield this._keyService.generateKeys(mnemonic);
             const _id = Buffer.from(ethers_1.ethers.utils.randomBytes(100)).toString('base64');
             const model = {
                 _id,
@@ -33,8 +39,8 @@ class CEAWalletManager {
                 keypairExports: exports,
                 created: new Date()
             };
-            yield this.keyStorage.enableCrypto(password);
-            const result = yield this.keyStorage.save(model);
+            yield this._keyStorage.enableCrypto(password);
+            const result = yield this._keyStorage.save(model);
             if (!result.ok) {
                 throw new Error('Wallet not saved to storage.');
             }
@@ -53,8 +59,8 @@ class CEAWalletManager {
     unlockWallet(id, passphrase) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                yield this.keyStorage.enableCrypto(passphrase);
-                const ks = yield this.keyStorage.find(id);
+                yield this._keyStorage.enableCrypto(passphrase);
+                const ks = yield this._keyStorage.find(id);
                 const wallet = ethers_1.ethers.Wallet.fromMnemonic(ks.mnemonic);
                 const { address, mnemonic } = wallet;
                 return {

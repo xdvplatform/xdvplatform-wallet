@@ -14,11 +14,27 @@ const elliptic_1 = require("elliptic");
 const ed25519_hd_key_1 = require("ed25519-hd-key");
 const ethers_1 = require("ethers");
 const KeyConverter_1 = require("./KeyConverter");
-const LDCryptoTypes_1 = require("./LDCryptoTypes");
+const AlgorithmType_1 = require("./AlgorithmType");
 const utils_1 = require("ethers/utils");
 const node_jose_1 = require("node-jose");
 const bls_keygen_1 = require("@chainsafe/bls-keygen");
+const LDCryptoTypes_1 = require("./LDCryptoTypes");
 class CEAKeyService {
+    getPrivateKey(algorithm, keyStore) {
+        switch (algorithm) {
+            case AlgorithmType_1.AlgorithmType.ED25519:
+                const ed25519 = new elliptic_1.eddsa('ed25519');
+                return ed25519.keyFromSecret(keyStore.ED25519).getSecret('hex');
+            case AlgorithmType_1.AlgorithmType.P256:
+                const p256 = new elliptic_1.ec('p256');
+                p256.keyFromPrivate(keyStore.P256).getPrivate('hex');
+            case AlgorithmType_1.AlgorithmType.ES256K:
+                const secp256k1 = new elliptic_1.ec('secp256k1');
+                return secp256k1.keyFromPrivate(keyStore.ES256K).getPrivate('hex');
+            default:
+                return null;
+        }
+    }
     getEd25519(mnemonic) {
         const ed = new elliptic_1.eddsa('ed25519');
         const { key } = ed25519_hd_key_1.getMasterKeyFromSeed(ethers_1.ethers.utils.HDNode.mnemonicToSeed(mnemonic));
