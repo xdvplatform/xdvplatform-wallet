@@ -28,29 +28,23 @@ class CEAWalletManager {
                 throw new Error('The Mnemonic is not valid.');
             }
             const wallet = ethers_1.ethers.Wallet.fromMnemonic(mnemonic);
-            const keystoreMnemonicAsString = yield wallet.encrypt(password);
+            const keystoreSeed = yield wallet.encrypt(password);
             const { stores, exports } = yield this._keyService.generateKeys(mnemonic);
             const _id = Buffer.from(ethers_1.ethers.utils.randomBytes(100)).toString('base64');
-            const model = {
+            const ks = {
                 _id,
                 keypairs: stores,
-                keystoreSeed: keystoreMnemonicAsString,
+                keystoreSeed,
                 mnemonic,
                 keypairExports: exports,
                 created: new Date()
             };
             yield this._keyStorage.enableCrypto(password);
-            const result = yield this._keyStorage.save(model);
+            const result = yield this._keyStorage.save(ks);
             if (!result.ok) {
                 throw new Error('Wallet not saved to storage.');
             }
-            const { address } = wallet;
-            return {
-                _id,
-                address,
-                mnemonic: mnemonic,
-                created: model.created
-            };
+            return ks;
         });
     }
     generateMnemonic() {
@@ -60,20 +54,17 @@ class CEAWalletManager {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 yield this._keyStorage.enableCrypto(passphrase);
-                const ks = yield this._keyStorage.find(id);
-                const wallet = ethers_1.ethers.Wallet.fromMnemonic(ks.mnemonic);
-                const { address, mnemonic } = wallet;
-                return {
-                    _id: id,
-                    address,
-                    mnemonic,
-                    created: ks.created
-                };
+                return yield this._keyStorage.find(id);
             }
             catch (e) {
                 return null;
             }
         });
+    }
+    getWalletAddress(mnemonic) {
+        const wallet = ethers_1.ethers.Wallet.fromMnemonic(mnemonic);
+        const { address } = wallet;
+        return address;
     }
 }
 exports.CEAWalletManager = CEAWalletManager;

@@ -1,4 +1,4 @@
-import { KeyModel } from "../crypto";
+import { KeyModel } from '../crypto';
 export interface KeyStorageModel {
     _id: string;
     keypairs: KeyModel;

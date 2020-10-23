@@ -10,8 +10,6 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !exports.hasOwnProperty(p)) __createBinding(exports, m, p);
 }
 Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./Wallet"), exports);
 __exportStar(require("./WalletManager"), exports);
 __exportStar(require("./CEAWalletManager"), exports);
-__exportStar(require("./WalletStoreModel"), exports);
 __exportStar(require("./createWalletManager"), exports);
